@@ -436,6 +436,16 @@ namespace Tpm2Lib
 
                     type = intType;
                 }
+                if(o is TpmHandle)
+                {
+                   TpmHandle tpmHandle = o as TpmHandle;
+                   //Pring the HT of the handle
+                    string handleName = tpmHandle.GetType().ToString();
+                    //If it is a permanet handle, pring also the RH name
+                    if(tpmHandle.GetType() == Ht.Permanent)
+                        handleName += " -" + ((TpmRh)tpmHandle.handle).ToString();
+                    name = string.Format("({0})", handleName);
+                }
                 // Print name and type but not the contents (printed recursively later)
                 AddLine(B, "{0}@-#{1}", name, type);
                 // Recurse
