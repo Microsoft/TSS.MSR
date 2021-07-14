@@ -11,13 +11,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tpm2Lib;
-#if !__NETCOREAPP2__
-#if !WLK
-using System.Web.UI;
-#else
+#if WLK
 using WEX.TestExecution;
 using WEX.Logging.Interop;
-#endif
 #endif
 
 namespace Tpm2Tester
@@ -74,9 +70,6 @@ namespace Tpm2Tester
     }
 
     internal delegate void Func();
-
-
-#if __NETCOREAPP2__
 
     internal enum HtmlTextWriterAttribute
     {
@@ -154,7 +147,6 @@ namespace Tpm2Tester
             writer.Write(s);
         }
     }
-#endif // NETCOREAPP2_X
 
     internal class TestLogger
     {

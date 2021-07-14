@@ -67,10 +67,7 @@ namespace Tpm2TestSuite
                 bool sigOk = certifyingKeyPub.VerifySignatureOverHash(tbsHash, sig);
                 if (sigKeyTemplate.type == TpmAlgId.Ecc)
                 {
-#if !__NETCOREAPP2__
-                    // No ECC in .Net Core
                     testCtx.Assert("Sign" + testLabel, sigOk);
-#endif
                 }
                 else
                     testCtx.Assert("Sign" + testLabel, sigOk);

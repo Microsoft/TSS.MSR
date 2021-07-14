@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.8.3.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
-      <HintPath>..\packages\BouncyCastle.1.8.3.1\lib\BouncyCastle.Crypto.dll</HintPath>
-    </Reference>
+    <PackageReference Include="BouncyCastle.NetCore" Version="1.8.8" />
     <ProjectReference Include="..\..\TSS.NET\TSS.Net\TSS.Net.csproj" />
     <ProjectReference Include="..\TestSubstrate\TestSubstrate.csproj" />
   </ItemGroup>
@@ -10,7 +8,8 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>TpmProxy</AssemblyName>
     <WarningLevel>4</WarningLevel>
-	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Version>20210628</Version>
   </PropertyGroup>
   <PropertyGroup>
     <NixTarget>false</NixTarget>
@@ -18,11 +17,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="$(NixTarget)">
     <TargetFramework>netcoreapp2.1</TargetFramework>
-	<DefineConstants>__NETCOREAPP2__;TSS_NO_STACK</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="!($(NixTarget))">
     <TargetFramework>net472</TargetFramework>
-	<DefineConstants>TSS_USE_BCRYPT</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

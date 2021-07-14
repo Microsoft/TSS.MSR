@@ -7,10 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Security.Cryptography;
-using BouncyCastleAES = Org.BouncyCastle.Crypto.Engines.AesEngine;
-using BouncyCastleAESKey = Org.BouncyCastle.Crypto.Parameters.KeyParameter;
-using BouncyCastleCMAC = Org.BouncyCastle.Crypto.Macs.CMac;
 
 namespace Tpm2Lib
 {
@@ -21,26 +17,17 @@ namespace Tpm2Lib
             if (dataToHash == null)
                 dataToHash = new byte[0];
 
-            HashAlgorithm hashAlg = null;
-            switch (algId)
+            string algName = Native.BCryptHashAlgName(algId);
+            if (string.IsNullOrEmpty(algName))
             {
-                case TpmAlgId.Sha1:
-                    hashAlg = new SHA1Managed();
-                    break;
-                case TpmAlgId.Sha256:
-                    hashAlg = new SHA256Managed();
-                    break;
-                case TpmAlgId.Sha384:
-                    hashAlg = new SHA384Managed();
-                    break;
-                case TpmAlgId.Sha512:
-                    hashAlg = new SHA512Managed();
-                    break;
-                default:
-                    Globs.Throw<ArgumentException>("AlgId is not a supported hash algorithm");
-                    return null;
+                Globs.Throw<ArgumentException>("HashData(): Unsupported hash algorithm " + algId);
+                return null;
             }
-            return hashAlg.ComputeHash(dataToHash);
+
+            var alg = new BCryptAlgorithm(algName);
+            var digest = alg.HashData(dataToHash);
+            alg.Close();
+            return digest;
         }
 
         static readonly TpmAlgId[] DefinedHashAlgorithms = {
@@ -136,56 +123,19 @@ namespace Tpm2Lib
             return TpmAlgId.Null;
         }
 
-        /// <summary>
-        /// Get the HashAlgorithmName for a hash algorithm.
-        /// </summary>
-        /// <param name="algId"></param>
-        /// <returns></returns>
-        internal static HashAlgorithmName GetHashAlgorithmName(TpmAlgId algId)
-        {
-            switch (algId)
-            {
-                case TpmAlgId.Sha1:
-                    return HashAlgorithmName.SHA1;
-                case TpmAlgId.Sha256:
-                    return HashAlgorithmName.SHA256;
-                case TpmAlgId.Sha384:
-                    return HashAlgorithmName.SHA384;
-                case TpmAlgId.Sha512:
-                    return HashAlgorithmName.SHA512;
-            }
-            Globs.Throw<ArgumentException>("Unsupported hash algorithm");
-            return HashAlgorithmName.SHA1;
-        }
-
         public static byte[] Hmac(TpmAlgId hashAlgId, byte[] key, byte[] data)
         {
-            switch (hashAlgId)
+            string algName = Native.BCryptHashAlgName(hashAlgId);
+            if (string.IsNullOrEmpty(algName))
             {
-                case TpmAlgId.Sha1:
-                    using (var h = new HMACSHA1(key))
-                    {
-                        return h.ComputeHash(data);
-                    }
-                case TpmAlgId.Sha256:
-                    using (var h2 = new HMACSHA256(key))
-                    {
-                        return h2.ComputeHash(data);
-                    }
-                case TpmAlgId.Sha384:
-                    using (var h3 = new HMACSHA384(key))
-                    {
-                        return h3.ComputeHash(data);
-                    }
-                case TpmAlgId.Sha512:
-                    using (var h4 = new HMACSHA512(key))
-                    {
-                        return h4.ComputeHash(data);
-                    }
-                default:
-                    Globs.Throw<ArgumentException>("Hmac(): Unsupported hash algorithm " + hashAlgId);
-                    return null;
+                Globs.Throw<ArgumentException>("CryptoLib.Hmac(): Unsupported hash algorithm " + hashAlgId);
+                return null;
             }
+
+            var alg = new BCryptAlgorithm(algName, Native.BCRYPT_ALG_HANDLE_HMAC);
+            var digest = alg.HmacData(key, data);
+            alg.Close();
+            return digest;
         }
 
         public static byte[] Mac(TpmAlgId symAlg, TpmAlgId macScheme, byte[] key, byte[] data)
@@ -201,12 +151,10 @@ namespace Tpm2Lib
                 return null;
             }
 
-            var mac = new BouncyCastleCMAC(new BouncyCastleAES());
-            var result = new byte[mac.GetMacSize()];
-            mac.Init(new BouncyCastleAESKey(key));
-            mac.BlockUpdate(data, 0, data.Length);
-            mac.DoFinal(result, 0);
-            return result;
+            var alg = new BCryptAlgorithm(Native.BCRYPT_AES_CMAC_ALGORITHM);
+            var digest = alg.HmacData(key, data);
+            alg.Close();
+            return digest;
         }
 
         public static bool VerifyHmac(TpmAlgId hashAlg, byte[] key, byte[] data, byte[] sig)

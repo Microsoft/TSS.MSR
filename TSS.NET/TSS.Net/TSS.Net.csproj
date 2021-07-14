@@ -2,24 +2,17 @@
 
   <PropertyGroup>
     <AssemblyName>TSS.Net</AssemblyName>
-    <TargetFrameworks>netstandard2.1;net472;net48;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
     <PackageId>TSS.Net</PackageId>
-	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>2.2</Version>
+    <Version>20210628</Version>
     <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
   <PropertyGroup>
     <NixTarget>false</NixTarget>
-	<NixTarget Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(OS)' == 'Unix' Or '$(OS)' == 'Linux'">true</NixTarget>
+    <NixTarget Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(OS)' == 'Unix' Or '$(OS)' == 'Linux'">true</NixTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="!($(NixTarget))">
-    <DefineConstants>TSS_USE_BCRYPT</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(NixTarget) Or $(TargetFramework.Contains('2.')) Or $(TargetFramework.Contains('3.'))">
-    <DefineConstants>__NETCOREAPP2__;__MonoCS__</DefineConstants>
-  </PropertyGroup>
-  
 
   <!-- delay sign the assembly for Release build -->
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -27,6 +20,11 @@
     <DelaySign>true</DelaySign>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
+
+  <!-- .NET standard library lacks a CMAC implementation, use BouncyCastle just for this. -->
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.NetCore" Version="1.8.8" />
+  </ItemGroup>
 <!--
   <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.Cng" Version="4.5.0" />

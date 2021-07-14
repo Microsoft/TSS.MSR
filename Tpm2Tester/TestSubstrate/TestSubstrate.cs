@@ -743,6 +743,7 @@ namespace Tpm2Tester
             {
                 // persistent Owner keys will be invalidated by the command
                 PersRsaPrimOwner = null;
+                RsaPrimOwnerPub = null;
                 PersRsaPrimEndors = null;
                 return false;
             }

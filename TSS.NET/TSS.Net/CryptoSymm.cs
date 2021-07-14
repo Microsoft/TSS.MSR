@@ -6,10 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-
-#if !TSS_USE_BCRYPT
 using System.Security.Cryptography;
-#endif
 
 namespace Tpm2Lib
 {
@@ -21,26 +18,6 @@ namespace Tpm2Lib
     {
         public bool LimitedSupport = false;
 
-#if TSS_USE_BCRYPT
-        private BCryptKey Key;
-        private byte[] KeyBuffer;
-        private byte[] IV;
-
-        private SymCipher(BCryptKey key, byte[] keyData, byte[] iv, int blockSize)
-        {
-            Key = key;
-            KeyBuffer = keyData;
-            IV = Globs.CopyData(iv) ?? new byte[BlockSize];
-            BlockSize = blockSize;
-        }
-
-        public byte[] KeyData { get { return KeyBuffer; } }
-
-        public int BlockSize = 0;
-
-        public int IVSize = 16;
-
-#else // !TSS_USE_BCRYPT
         // .Net crypto object implementing the symmetric algorithm
         private readonly SymmetricAlgorithm Alg;
 
@@ -66,7 +43,6 @@ namespace Tpm2Lib
             Alg = alg;
             Mode = mode;
         }
-#endif // !TSS_USE_BCRYPT
 
         /// <summary>
         /// Block size in bytes.
@@ -105,33 +81,6 @@ namespace Tpm2Lib
                 symDef = new SymDefObject(TpmAlgId.Aes, 128, TpmAlgId.Cfb);
             }
 
-#if TSS_USE_BCRYPT
-            BCryptAlgorithm alg = null;
-
-            switch (symDef.Algorithm)
-            {
-                case TpmAlgId.Aes:
-                    alg = new BCryptAlgorithm(Native.BCRYPT_AES_ALGORITHM);
-                    break;
-                case TpmAlgId.Tdes:
-                    alg = new BCryptAlgorithm(Native.BCRYPT_3DES_ALGORITHM);
-                    break;
-                default:
-                    Globs.Throw<ArgumentException>("Unsupported symmetric algorithm "
-                                                   + symDef.Algorithm);
-                    return null;
-            }
-
-            if (keyData == null)
-            {
-                keyData = Globs.GetRandomBytes(symDef.KeyBits / 8);
-            }
-            var key = alg.GenerateSymKey(symDef, keyData, GetBlockSize(symDef));
-            //key = BCryptInterface.ExportSymKey(keyHandle);
-            //keyHandle = alg.LoadSymKey(key, symDef, GetBlockSize(symDef));
-            alg.Close();
-            return key == null ? null : new SymCipher(key, keyData, iv, GetBlockSize(symDef));
-#else // !TSS_USE_BCRYPT
             if (symDef.Mode == TpmAlgId.Ofb)
                 return null;
 
@@ -199,10 +148,8 @@ namespace Tpm2Lib
             var symCipher = new SymCipher(alg, mode);
             symCipher.LimitedSupport = limitedSupport;
             return symCipher;
-#endif // !TSS_USE_BCRYPT
         } // Create()
 
-#if !TSS_USE_BCRYPT
         const CipherMode CipherMode_None = (CipherMode)0;
 
         public static CipherMode GetCipherMode(TpmAlgId cipherMode)
@@ -217,12 +164,14 @@ namespace Tpm2Lib
                     return CipherMode.CBC;
                 case TpmAlgId.Ecb:
                     return CipherMode.ECB;
+                case TpmAlgId.Ctr:
+                    // CTR in .NET requires you to manage your own counter.
+                    return CipherMode_None;
                 default:
                     Globs.Throw<ArgumentException>("GetCipherMode: Unsupported cipher mode");
                     return CipherMode_None;
             }
         }
-#endif
 
         public static SymCipher CreateFromPublicParms(IPublicParmsUnion parms)
         {
@@ -256,7 +205,6 @@ namespace Tpm2Lib
             }
         }
 
-#if !TSS_USE_BCRYPT
         private static void EncryptCFB(byte[] paddedData, byte[] iv, ICryptoTransform enc)
         {
             for (int i = 0; i < paddedData.Length; i += iv.Length)
@@ -272,7 +220,6 @@ namespace Tpm2Lib
                 }
             }
         }
-#endif // !TSS_USE_BCRYPT
 
         /// <summary>
         /// Performs the TPM-defined CFB encrypt using the associated algorithm.
@@ -286,9 +233,6 @@ namespace Tpm2Lib
             byte[] paddedData;
             int unpadded = data.Length % BlockSize;
             paddedData = unpadded == 0 ? data : Globs.AddZeroToEnd(data, BlockSize - unpadded);
-#if TSS_USE_BCRYPT
-            paddedData = Key.Encrypt(paddedData, null, iv ?? IV);
-#else
             bool externalIV = iv != null && iv.Length > 0;
             if (externalIV)
                 Alg.IV = iv;
@@ -332,11 +276,9 @@ namespace Tpm2Lib
                     break;
                 }
             }
-#endif // !TSS_USE_BCRYPT
             return unpadded == 0 ? paddedData : Globs.CopyData(paddedData, 0, data.Length);
         }
 
-#if !TSS_USE_BCRYPT
         private static void DecryptCFB(byte[] paddedData, byte[] iv, ICryptoTransform enc)
         {
             var tempOut = new byte[iv.Length];
@@ -356,17 +298,12 @@ namespace Tpm2Lib
                 }
             }
         }
-#endif // !TSS_USE_BCRYPT
 
         public byte[] Decrypt(byte[] data, byte[] iv = null)
         {
             byte[] paddedData;
             int unpadded = data.Length % BlockSize;
             paddedData = unpadded == 0 ? data : Globs.AddZeroToEnd(data, BlockSize - unpadded);
-#if TSS_USE_BCRYPT
-            paddedData = Key.Decrypt(paddedData, null, iv ?? IV);
-            return Globs.CopyData(paddedData, 0, data.Length);
-#else
             bool externalIV = iv != null && iv.Length > 0;
             if (externalIV)
                 Alg.IV = iv;
@@ -416,7 +353,6 @@ namespace Tpm2Lib
                 }
             }
             return tempOut;
-#endif // !TSS_USE_BCRYPT
         }
 
         /// <summary>
@@ -470,11 +406,7 @@ namespace Tpm2Lib
 
         public void Dispose()
         {
-#if TSS_USE_BCRYPT
-            Key.Dispose();
-#else
             Alg.Dispose();
-#endif
         }
     }
 }

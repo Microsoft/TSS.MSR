@@ -6,7 +6,6 @@
 using System;
 using System.Linq;
 using System.Text;
-using System.Security.Cryptography;
 
 namespace Tpm2Lib
 {
@@ -175,11 +174,6 @@ namespace Tpm2Lib
         private int Round;
 
         /// <summary>
-        /// Default RNG used by the library
-        /// </summary>
-        private static readonly RNGCryptoServiceProvider CryptoRand = new RNGCryptoServiceProvider();
-
-        /// <summary>
         /// Creates a copy of the current object
         /// </summary>
         public PRNG Clone()
@@ -222,7 +216,8 @@ namespace Tpm2Lib
                 if (Seed != null)
                     return;
                 Seed = new byte[32];
-                CryptoRand.GetBytes(Seed);
+                var rnd = new Random();
+                rnd.NextBytes(Seed);
                 Round = 0;
                 FillRandBuf();
             }

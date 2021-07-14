@@ -6,10 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
-
-#if !TSS_USE_BCRYPT
 using System.Security.Cryptography;
-#endif
 
 
 namespace Tpm2Lib

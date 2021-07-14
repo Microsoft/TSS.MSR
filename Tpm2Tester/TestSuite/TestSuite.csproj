@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.NetCore" Version="1.8.6" />
+    <PackageReference Include="BouncyCastle.NetCore" Version="1.8.8" />
     <ProjectReference Include="..\..\TSS.NET\TSS.Net\TSS.Net.csproj" />
     <ProjectReference Include="..\TestSubstrate\TestSubstrate.csproj" />
   </ItemGroup>
@@ -9,21 +9,20 @@
     <AssemblyName>Tpm2TestSuite</AssemblyName>
     <!-- <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks> -->
     <WarningLevel>4</WarningLevel>
-	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Version>20210628</Version>
   </PropertyGroup>
   <PropertyGroup>
     <NixTarget>false</NixTarget>
-	<NixTarget Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(OS)' == 'Unix' Or '$(OS)' == 'Linux'">true</NixTarget>
-	<StartupObject>Tpm2TestSuite.Tpm2Tests</StartupObject>
+    <NixTarget Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(OS)' == 'Unix' Or '$(OS)' == 'Linux'">true</NixTarget>
+    <StartupObject>Tpm2TestSuite.Tpm2Tests</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="!($(NixTarget))">
     <TargetFramework>net472</TargetFramework>
-	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-	<DefineConstants>TSS_USE_BCRYPT</DefineConstants>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="$(NixTarget) Or $(TargetFramework.Contains('2.')) Or $(TargetFramework.Contains('3.'))">
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <DefineConstants>__NETCOREAPP2__;__MonoCS__</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

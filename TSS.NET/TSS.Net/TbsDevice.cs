@@ -8,9 +8,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-#if !__NETCOREAPP2__
 using Microsoft.Win32;
-#endif
 
 namespace Tpm2Lib
 {
@@ -191,7 +189,7 @@ namespace Tpm2Lib
                                    ref resultByteCount);
             if (result != TbsWrapper.TBS_RESULT.SUCCESS)
             {
-#if !__NETCOREAPP2__ && false
+#if false
                 Console.WriteLine($"Trying to read LockoutAuth from the registry...");
                 try
                 {
