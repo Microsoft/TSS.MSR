@@ -39,6 +39,8 @@ Abstract:
 #include <Shlobj.h>
 #include <TBS.h>
 #include <wbcl.h>
+#include <regex>
+using namespace std;
 
 #include "targetver.h"
 #include "TpmAtt.h"

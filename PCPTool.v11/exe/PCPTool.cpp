@@ -50,6 +50,7 @@ PcpToolGetHelp(
     wprintf(L" ExportKey [key name] [migrationAuth] {key file}\n");
     wprintf(L" ChangeKeyUsageAuth [key name] [usageAuth] [newUsageAuth]\n");
     wprintf(L" DeleteKey [key name]\n");
+    wprintf(L" DeleteKeys [key name regex]\n");
     wprintf(L" GetPubKey [key name] {key File}\n");
     wprintf(L" Encrypt [pubkey file] [data] {blob file}\n");
     wprintf(L" Decrypt [key name] [blob file] {usageAuth}\n");
@@ -203,6 +204,10 @@ int __cdecl wmain(_In_ int argc,
         else if(!_wcsicmp(command, L"deletekey"))
         {
             hr = PcpToolDeleteKey(argc, argv);
+        }
+        else if (!_wcsicmp(command, L"deletekeys"))
+        {
+            hr = PcpToolDeleteKeys(argc, argv);
         }
         else if(!_wcsicmp(command, L"getpubkey"))
         {

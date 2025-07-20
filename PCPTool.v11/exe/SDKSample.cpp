@@ -3354,8 +3354,9 @@ or in the machine context.
     NCRYPT_PROV_HANDLE hProv = NULL;
     NCryptKeyName* pKeyName = NULL;
     PVOID pEnumState = NULL;
-    DWORD dwFlags[2] = {NCRYPT_SILENT_FLAG,
-                        NCRYPT_SILENT_FLAG | NCRYPT_MACHINE_KEY_FLAG};
+    DWORD dwFlags[2] = {
+                        NCRYPT_SILENT_FLAG | NCRYPT_MACHINE_KEY_FLAG,
+                        NCRYPT_SILENT_FLAG };
     NCRYPT_KEY_HANDLE hKey = NULL;
     DWORD dwKeyUsage = NCRYPT_PCP_IDENTITY_KEY;
     DWORD cbRequired = 0;
@@ -3414,9 +3415,17 @@ or in the machine context.
                                             &hKey,
                                             pKeyName->pszName,
                                             0,
-                                            0))))
+                    dwFlags[n] & NCRYPT_MACHINE_KEY_FLAG))))
                 {
-                    goto Cleanup;
+                    wprintf(L"Could not open key: %s (0x%08lx)\n", pKeyName->pszName, hr);
+                    if (pKeyName != NULL)
+                    {
+                        NCryptFreeBuffer(pKeyName);
+                        pKeyName = NULL;
+                    }
+                    hr = S_OK;
+                    // Try next key
+                    continue;
                 }
 
                 if(FAILED(hr = HRESULT_FROM_WIN32(NCryptGetProperty(
@@ -3581,7 +3590,7 @@ Cleanup:
         NCryptFreeObject(hProv);
         hProv = NULL;
     }
-    PcpToolCallResult(L"PcpToolEnumerateKey()", hr);
+    PcpToolCallResult(L"PcpToolEnumerateKeys()", hr);
     return hr;
 }
 
@@ -4219,7 +4228,15 @@ Delete a user key from the PCP storage.
                                 0,
                                 0))))
     {
-        goto Cleanup;
+        if (FAILED(hr = (NCryptOpenKey(
+            hProv,
+            &hKey,
+            keyName,
+            0,
+            NCRYPT_MACHINE_KEY_FLAG))))
+        {
+            goto Cleanup;
+        }
     }
 
     // Delete the key
@@ -4245,6 +4262,153 @@ Cleanup:
     PcpToolCallResult(L"PcpToolDeleteKey()", hr);
     return hr;
 }
+
+
+HRESULT
+PcpToolDeleteKeys(
+    int argc,
+    _In_reads_(argc) WCHAR* argv[]
+)
+/*++
+This function will enumerate all keys that are held on the PCPKSP for this user
+or in the machine context.
+--*/
+{
+    HRESULT hr = S_OK;
+    NCRYPT_PROV_HANDLE hProv = NULL;
+    NCryptKeyName* pKeyName = NULL;
+    PVOID pEnumState = NULL;
+    DWORD dwFlags[2] = {
+                        NCRYPT_SILENT_FLAG | NCRYPT_MACHINE_KEY_FLAG,
+                        NCRYPT_SILENT_FLAG };
+    NCRYPT_KEY_HANDLE hKey = NULL;
+    basic_regex<wchar_t> regexKeyName;
+    int matchingKeys = 0;
+
+    // Mandatory parameter: Key Name
+    if (argc > 2)
+    {
+        regexKeyName = basic_regex<wchar_t>(argv[2]);
+    }
+    else
+    {
+        wprintf(L"%s %s [key name]\n",
+            argv[0],
+            argv[1]);
+        hr = E_INVALIDARG;
+        goto Cleanup;
+    }
+
+    if (FAILED(hr = HRESULT_FROM_WIN32(NCryptOpenStorageProvider(
+        &hProv,
+        MS_PLATFORM_CRYPTO_PROVIDER,
+        0))))
+    {
+        goto Cleanup;
+    }
+
+    for (UINT32 n = 0; n < (sizeof(dwFlags) / sizeof(DWORD)); n++)
+    {
+        hr = S_OK;
+
+        while (SUCCEEDED(hr))
+        {
+            hr = HRESULT_FROM_WIN32(NCryptEnumKeys(
+                hProv,
+                NULL,
+                &pKeyName,
+                &pEnumState,
+                dwFlags[n]));
+            if (FAILED(hr))
+            {
+                if (hr == HRESULT_FROM_WIN32((ULONG)NTE_NO_MORE_ITEMS))
+                {
+                    if (pEnumState != NULL)
+                    {
+                        NCryptFreeBuffer(pEnumState);
+                        pEnumState = NULL;
+                    }
+                    hr = S_OK;
+                    break;
+                }
+                else
+                {
+                    goto Cleanup;
+                }
+            }
+            else
+            {
+                if (regex_match(pKeyName->pszName, regexKeyName)) {
+                    matchingKeys++;
+
+                    if (FAILED(hr = HRESULT_FROM_WIN32(NCryptOpenKey(
+                        hProv,
+                        &hKey,
+                        pKeyName->pszName,
+                        0,
+                        dwFlags[n] & NCRYPT_MACHINE_KEY_FLAG))))
+                    {
+                        wprintf(L"Could not open key: %s (0x%08lx)\n", pKeyName->pszName, hr);
+                        if (pKeyName != NULL)
+                        {
+                            NCryptFreeBuffer(pKeyName);
+                            pKeyName = NULL;
+                        }
+                        hr = S_OK;
+                        continue;
+                    }
+
+                    wprintf(L"Deletes key: %s ", pKeyName->pszName);
+                    // Delete the key
+                    if (FAILED(hr = (NCryptDeleteKey(hKey, 0))))
+                    {
+                        wprintf(L" Failed (0x%08lx)\n", hr);
+                    }
+                    else 
+                    {
+                        wprintf(L" Deleted\n");
+                    }
+
+                    NCryptFreeObject(hKey);
+                    hKey = NULL;
+                    NCryptFreeBuffer(pKeyName);
+                    pKeyName = NULL;
+                }
+            }
+        }
+    }
+
+    if (matchingKeys == 0) 
+    {
+        wprintf(L"No matching keys found\n");
+    }
+
+Cleanup:
+    if (pKeyName != NULL)
+    {
+        NCryptFreeBuffer(pKeyName);
+        pKeyName = NULL;
+    }
+    if (pEnumState != NULL)
+    {
+        NCryptFreeBuffer(pEnumState);
+        pEnumState = NULL;
+    }
+    if (hKey != NULL)
+    {
+        NCryptFreeObject(hKey);
+        hKey = NULL;
+    }
+    if (hProv != NULL)
+    {
+        NCryptFreeObject(hProv);
+        hProv = NULL;
+    }
+    PcpToolCallResult(L"PcpToolDeleteKeys()", hr);
+    return hr;
+}
+
+
 
 HRESULT
 PcpToolGetPubKey(

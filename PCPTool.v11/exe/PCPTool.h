@@ -323,7 +323,13 @@ HRESULT
 PcpToolDeleteKey(
     int argc,
     _In_reads_(argc) WCHAR* argv[]
-    );
+);
+
+HRESULT
+PcpToolDeleteKeys(
+    int argc,
+    _In_reads_(argc) WCHAR* argv[]
+);
 
 HRESULT
 PcpToolGetPubKey(
