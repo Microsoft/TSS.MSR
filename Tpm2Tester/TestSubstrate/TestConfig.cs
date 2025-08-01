@@ -129,7 +129,7 @@ namespace Tpm2Tester
         // Only used with a TCP TPM device (TPM Simulator or TPM Proxy)
         internal TcpTpmDevice TheTcpTpmDevice = null;
 #else
-        internal TpmDeviceType DeviceType = TpmDeviceTypes.tbs;
+        internal TpmDeviceType DeviceType = TpmDeviceType.tbs;
 #endif
 
         // Duration of the stresss mode session (with -tpm option).
