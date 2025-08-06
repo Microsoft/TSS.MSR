@@ -170,128 +170,6 @@ typedef struct _PCP_KEY_ATTESTATION_BLOB {
 #define TPM_STATIC_CONFIG_KEYATTEST_KEYS L"SYSTEM\\CurrentControlSet\\Services\\Tpm\\KeyAttestationKeys"
 #define TPM_VOLATILE_CONFIG_DATA L"System\\CurrentControlSet\\Control\\IntegrityServices"
 
-// SIPA event structures
-
-//
-// Describes the VSM/SMART identity public key.
-//
-typedef struct tag_SIPAEVENT_VSM_IDK_RSA_INFO
-{
-    //
-    // Length of the RSA IDK modulus in bits.
-    //
-    ULONG32 KeyBitLength;
-
-    //
-    // Length of the RSA IDK public exponent in bytes.
-    //
-    ULONG32 PublicExpLengthBytes;
-
-    //
-    // Length of the modulus field in bytes.
-    //
-    ULONG32 ModulusSizeBytes;
-
-    //
-    // The layout of the PublicKeyData field is as follows:
-    // PublicExponent[PublicExpLengthBytes] in Big-endian.
-    // Modulus[ModulusSizeBytes] in Big-endian.
-    //
-    BYTE    PublicKeyData[ANYSIZE_ARRAY];
-
-} SIPAEVENT_VSM_IDK_RSA_INFO, *PSIPAEVENT_VSM_IDK_RSA_INFO;
-
-//
-// Payload structure for the SIPAEVENT_VSM_IDK_INFO event.
-//
-typedef struct tag_SIPAEVENT_VSM_IDK_INFO_PAYLOAD
-{
-    //
-    // Specifies the algorithm used for IDK. Should be one of VSM_IDK_ALG_ID values.
-    //
-    ULONG32	KeyAlgID;
-
-    //
-    // Algorithm-specific description of the public key.
-    //
-    union
-    {
-        //
-        // Description of the RSA public key.
-        //
-        SIPAEVENT_VSM_IDK_RSA_INFO	RsaKeyInfo;
-    } DUMMYUNIONNAME;
-
-} SIPAEVENT_VSM_IDK_INFO_PAYLOAD, *PSIPAEVENT_VSM_IDK_INFO_PAYLOAD;
-
-//
-// Payload structure used to carry information about any policy blob.
-//
-typedef struct tag_SIPAEVENT_SI_POLICY_PAYLOAD
-{
-    //
-    // Policy version
-    //
-    ULONGLONG PolicyVersion;
-
-    //
-    // Indicates the length (in bytes) of the policy name stored as part of VarLengthData.
-    //
-    UINT16  PolicyNameLength;
-
-    //
-    // Indicates hash algorithm ID used to produce policy digest.
-    // Contains one of the TPM_ALG_ID values, typically the TPM_ALG_SHA256.
-    //
-    UINT16  HashAlgID;
-
-    //
-    // Indicates the hash digest length (in bytes). Digest is stored as part of VarLengthData.
-    //
-    UINT32  DigestLength;
-
-    //
-    // VarLengthData layout is:
-    //
-    // (Policy name is stored as a WCHAR string with a terminating zero).
-    // BYTE PolicyName[PolicyNameLength].
-    //
-    // BYTE Digest[DigestLength]
-    //
-    _Field_size_bytes_(PolicyNameLength + DigestLength)
-        BYTE    VarLengthData[ANYSIZE_ARRAY];
-
-} SIPAEVENT_SI_POLICY_PAYLOAD, *PSIPAEVENT_SI_POLICY_PAYLOAD;
-
-//
-// Payload structure used to carry information about revocation lists.
-//
-typedef struct tag_SIPAEVENT_REVOCATION_LIST_PAYLOAD
-{
-    //
-    // Creation time.
-    //
-    LONGLONG CreationTime;
-
-    //
-    // Indicates the hash digest length (in bytes).
-    //
-    UINT32  DigestLength;
-
-    //
-    // Indicates hash algorithm ID used to produce the revocation list digest.
-    // Contains one of the TPM_ALG_ID values, typically the TPM_ALG_SHA256.
-    //
-    UINT16  HashAlgID;
-
-    //
-    // Hash digest of the revocation list.
-    //
-    _Field_size_bytes_(DigestLength)
-        BYTE    Digest[ANYSIZE_ARRAY];
-
-} SIPAEVENT_REVOCATION_LIST_PAYLOAD, *PSIPAEVENT_REVOCATION_LIST_PAYLOAD;
-
 // WBCL parser APIs
 #pragma pack(push,1)
 
@@ -315,52 +193,21 @@ typedef UINT16 WBCL_DIGEST_ALG_ID;
 #define WBCL_DIGEST_ALG_BITMAP_SHA_2_384    0x00000004
 #define WBCL_DIGEST_ALG_BITMAP_SHA_2_512    0x00000008
 
-//
-// An iterator object for WBCL log.
-//
-typedef struct _WBCL_Iterator
-{
-    // Pointer to the first element of the log.
-    PVOID     firstElementPtr;
-
-    // Log size in bytes.
-    UINT32    logSize;
-
-    // Pointer to the current element of the log.
-    PVOID     currentElementPtr;
-
-    // Size of the current log entry pointed to by currentElementPtr.
-    UINT32    currentElementSize;
-
-    // Size of the digest field of event log entries.
-    UINT16    digestSize;
-
-    // Indicates the log format.
-    UINT16    logFormat;
-
-    // number of algorithms stored in the following digest table.
-    UINT32    numberOfDigests;
-
-    // points to the table in the header that contains the mapping of algorithm ids to digest sizes.
-    PVOID     digestSizes;
-
-    // Hash algorithm ID used for the log. The value corresponds to one of the TPM 2.0 ALG_ID values.
-    WBCL_DIGEST_ALG_ID    hashAlgorithm;
-} WBCL_Iterator, *PWBCL_Iterator;
 #pragma pack(pop)
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-// WBCL parser functions (wbcl.h)
+// Our own implementation of the WBCL parser functions (wbcl.h)
+// We're implementing them ourselves because this repo does not have tpmapi.lib to link against.
 
-DllExport HRESULT WbclApiInitIterator(
+DllExport HRESULT MyWbclApiInitIterator(
     _In_    PVOID  pLogBuffer,
     _In_    UINT32 logSize,
     _Out_   WBCL_Iterator* pWbclIterator);
 
-DllExport HRESULT WbclApiGetCurrentElement(
+DllExport HRESULT MyWbclApiGetCurrentElement(
     _In_            WBCL_Iterator* pWbclIterator,
     _Out_           UINT32* pcrIndex,
     _Out_           UINT32* eventType,
@@ -369,7 +216,7 @@ DllExport HRESULT WbclApiGetCurrentElement(
     _Outptr_opt_result_bytebuffer_(*pcbElementDataSize) BYTE** ppbElementData
     );
 
-DllExport HRESULT WbclApiMoveToNextElement(
+DllExport HRESULT MyWbclApiMoveToNextElement(
     _In_ WBCL_Iterator* pWbclIterator);
 
 #ifndef NCRYPT_PCP_PLATFORM_BINDING_PCRALGID_PROPERTY

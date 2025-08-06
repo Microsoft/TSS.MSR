@@ -850,9 +850,9 @@ PcpToolDisplayLog(
     PcpToolLevelPrefix(level + 1);
     wprintf(L"<WBCL size=\"%u\">\n", cbWBCL);
 
-    if (FAILED(hr = WbclApiInitIterator(pbWBCL, 
-                                        cbWBCL, 
-                                        &wbclIterator)))
+    if (FAILED(hr = MyWbclApiInitIterator(pbWBCL, 
+                                          cbWBCL, 
+                                          &wbclIterator)))
     {
         goto Cleanup;
     }
@@ -862,7 +862,7 @@ PcpToolDisplayLog(
     }
 
     for (; hr == S_OK;
-           hr = WbclApiMoveToNextElement(&wbclIterator))
+           hr = MyWbclApiMoveToNextElement(&wbclIterator))
     {
         BYTE eventDataDigest[MAX_DIGEST_SIZE] = { 0 };
         UINT32 PcrIndex;
@@ -871,7 +871,7 @@ PcpToolDisplayLog(
         PBYTE pbEventData;
         PBYTE pbDigest;
 
-        hr = WbclApiGetCurrentElement(
+        hr = MyWbclApiGetCurrentElement(
                 &wbclIterator, 
                 &PcrIndex, 
                 &EventType,
