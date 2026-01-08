@@ -263,10 +263,10 @@ namespace CodeGen
                     TabIn($"def {sel.Name}({This}): # {sel.TypeName}");
                     WriteComment(sel.Comment);
                     if (u.NullSelector == null)
-                        Write($"return {unionField.Name}.GetUnionSelector()");
+                        Write($"return self.{unionField.Name}.GetUnionSelector()");
                     else
                     {
-                        Write($"return {unionField.Name}.GetUnionSelector() if {unionField.Name}" +
+                        Write($"return self.{unionField.Name}.GetUnionSelector() if self.{unionField.Name}" +
                                                                          $" else {u.NullSelector.QualifiedName}");
                     }
                     TabOut();

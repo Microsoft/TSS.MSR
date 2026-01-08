@@ -4937,7 +4937,7 @@ class TPMS_CAPABILITY_DATA (TpmStructure):
     @property
     def capability(self): # TPM_CAP
         """ The capability """
-        return data.GetUnionSelector()
+        return self.data.GetUnionSelector()
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -5436,7 +5436,7 @@ class TPMS_ATTEST (TpmStructure):
     @property
     def type(self): # TPM_ST
         """ Type of the attestation structure """
-        return attested.GetUnionSelector()
+        return self.attested.GetUnionSelector()
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -6368,7 +6368,7 @@ class TPMT_KEYEDHASH_SCHEME (TpmStructure):
     @property
     def scheme(self): # TPM_ALG_ID
         """ Selects the scheme """
-        return details.GetUnionSelector() if details else TPM_ALG_ID.NULL
+        return self.details.GetUnionSelector() if self.details else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -6625,7 +6625,7 @@ class TPMT_SIG_SCHEME (TpmStructure):
     @property
     def scheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return details.GetUnionSelector() if details else TPM_ALG_ID.NULL
+        return self.details.GetUnionSelector() if self.details else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -6930,7 +6930,7 @@ class TPMT_KDF_SCHEME (TpmStructure):
     @property
     def scheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return details.GetUnionSelector() if details else TPM_ALG_ID.NULL
+        return self.details.GetUnionSelector() if self.details else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -7008,7 +7008,7 @@ class TPMT_ASYM_SCHEME (TpmStructure):
     @property
     def scheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return details.GetUnionSelector() if details else TPM_ALG_ID.NULL
+        return self.details.GetUnionSelector() if self.details else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -7055,7 +7055,7 @@ class TPMT_RSA_SCHEME (TpmStructure):
     @property
     def scheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return details.GetUnionSelector() if details else TPM_ALG_ID.NULL
+        return self.details.GetUnionSelector() if self.details else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -7102,7 +7102,7 @@ class TPMT_RSA_DECRYPT (TpmStructure):
     @property
     def scheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return details.GetUnionSelector() if details else TPM_ALG_ID.NULL
+        return self.details.GetUnionSelector() if self.details else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -7333,7 +7333,7 @@ class TPMT_ECC_SCHEME (TpmStructure):
     @property
     def scheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return details.GetUnionSelector() if details else TPM_ALG_ID.NULL
+        return self.details.GetUnionSelector() if self.details else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -7406,12 +7406,12 @@ class TPMS_ALGORITHM_DETAIL_ECC (TpmStructure):
     @property
     def kdfScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return kdf.GetUnionSelector() if kdf else TPM_ALG_ID.NULL
+        return self.kdf.GetUnionSelector() if self.kdf else TPM_ALG_ID.NULL
 
     @property
     def signScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return sign.GetUnionSelector() if sign else TPM_ALG_ID.NULL
+        return self.sign.GetUnionSelector() if self.sign else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -7781,7 +7781,7 @@ class TPMT_SIGNATURE (TpmStructure):
     @property
     def sigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -7859,7 +7859,7 @@ class TPMS_KEYEDHASH_PARMS (TpmStructure, TPMU_PUBLIC_PARMS):
     @property
     def schemeScheme(self): # TPM_ALG_ID
         """ Selects the scheme """
-        return scheme.GetUnionSelector() if scheme else TPM_ALG_ID.NULL
+        return self.scheme.GetUnionSelector() if self.scheme else TPM_ALG_ID.NULL
 
     def GetUnionSelector(self): # TPM_ALG_ID
         """ TpmUnion method """
@@ -7921,7 +7921,7 @@ class TPMS_ASYM_PARMS (TpmStructure, TPMU_PUBLIC_PARMS):
     @property
     def schemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return scheme.GetUnionSelector() if scheme else TPM_ALG_ID.NULL
+        return self.scheme.GetUnionSelector() if self.scheme else TPM_ALG_ID.NULL
 
     def GetUnionSelector(self): # TPM_ALG_ID
         """ TpmUnion method """
@@ -7996,7 +7996,7 @@ class TPMS_RSA_PARMS (TpmStructure, TPMU_PUBLIC_PARMS):
     @property
     def schemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return scheme.GetUnionSelector() if scheme else TPM_ALG_ID.NULL
+        return self.scheme.GetUnionSelector() if self.scheme else TPM_ALG_ID.NULL
 
     def GetUnionSelector(self): # TPM_ALG_ID
         """ TpmUnion method """
@@ -8076,12 +8076,12 @@ class TPMS_ECC_PARMS (TpmStructure, TPMU_PUBLIC_PARMS):
     @property
     def schemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return scheme.GetUnionSelector() if scheme else TPM_ALG_ID.NULL
+        return self.scheme.GetUnionSelector() if self.scheme else TPM_ALG_ID.NULL
 
     @property
     def kdfScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return kdf.GetUnionSelector() if kdf else TPM_ALG_ID.NULL
+        return self.kdf.GetUnionSelector() if self.kdf else TPM_ALG_ID.NULL
 
     def GetUnionSelector(self): # TPM_ALG_ID
         """ TpmUnion method """
@@ -8137,7 +8137,7 @@ class TPMT_PUBLIC_PARMS (TpmStructure):
     @property
     def type(self): # TPM_ALG_ID
         """ The algorithm to be tested """
-        return parameters.GetUnionSelector()
+        return self.parameters.GetUnionSelector()
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -8197,7 +8197,7 @@ class TPMT_PUBLIC (TpmStructure):
     @property
     def type(self): # TPM_ALG_ID
         """ Algorithm associated with this object """
-        return parameters.GetUnionSelector()
+        return self.parameters.GetUnionSelector()
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -8375,7 +8375,7 @@ class TPMT_SENSITIVE (TpmStructure):
         """ Identifier for the sensitive area
         This shall be the same as the type parameter of the associated public area.
         """
-        return sensitive.GetUnionSelector()
+        return self.sensitive.GetUnionSelector()
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -10632,7 +10632,7 @@ class TPM2_RSA_Encrypt_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -10739,7 +10739,7 @@ class TPM2_RSA_Decrypt_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -11170,7 +11170,7 @@ class TPM2_ECC_Encrypt_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -11276,7 +11276,7 @@ class TPM2_ECC_Decrypt_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12410,7 +12410,7 @@ class TPM2_Certify_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12472,7 +12472,7 @@ class CertifyResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12540,7 +12540,7 @@ class TPM2_CertifyCreation_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12603,7 +12603,7 @@ class CertifyCreationResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12660,7 +12660,7 @@ class TPM2_Quote_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12718,7 +12718,7 @@ class QuoteResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12781,7 +12781,7 @@ class TPM2_GetSessionAuditDigest_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12837,7 +12837,7 @@ class GetSessionAuditDigestResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12900,7 +12900,7 @@ class TPM2_GetCommandAuditDigest_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -12959,7 +12959,7 @@ class GetCommandAuditDigestResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -13020,7 +13020,7 @@ class TPM2_GetTime_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -13076,7 +13076,7 @@ class GetTimeResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -13144,7 +13144,7 @@ class TPM2_CertifyX509_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -13212,7 +13212,7 @@ class CertifyX509Response (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -13448,7 +13448,7 @@ class TPM2_VerifySignature_REQUEST (ReqStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -13548,7 +13548,7 @@ class TPM2_Sign_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -13605,7 +13605,7 @@ class SignResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -14155,7 +14155,7 @@ class TPM2_PolicySigned_REQUEST (ReqStructure):
     @property
     def authSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return auth.GetUnionSelector() if auth else TPM_ALG_ID.NULL
+        return self.auth.GetUnionSelector() if self.auth else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -15876,7 +15876,7 @@ class TPM2_FieldUpgradeStart_REQUEST (ReqStructure):
     @property
     def manifestSignatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return manifestSignature.GetUnionSelector() if manifestSignature else TPM_ALG_ID.NULL
+        return self.manifestSignature.GetUnionSelector() if self.manifestSignature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -16483,7 +16483,7 @@ class GetCapabilityResponse (RespStructure):
     @property
     def capabilityDataCapability(self): # TPM_CAP
         """ The capability """
-        return capabilityData.GetUnionSelector()
+        return self.capabilityData.GetUnionSelector()
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -16528,7 +16528,7 @@ class TPM2_TestParms_REQUEST (ReqStructure):
     @property
     def parametersType(self): # TPM_ALG_ID
         """ The algorithm to be tested """
-        return parameters.GetUnionSelector()
+        return self.parameters.GetUnionSelector()
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -17222,7 +17222,7 @@ class TPM2_NV_Certify_REQUEST (ReqStructure):
     @property
     def inSchemeScheme(self): # TPM_ALG_ID
         """ Scheme selector """
-        return inScheme.GetUnionSelector() if inScheme else TPM_ALG_ID.NULL
+        return self.inScheme.GetUnionSelector() if self.inScheme else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
@@ -17284,7 +17284,7 @@ class NV_CertifyResponse (RespStructure):
     @property
     def signatureSigAlg(self): # TPM_ALG_ID
         """ Selector of the algorithm used to construct the signature """
-        return signature.GetUnionSelector() if signature else TPM_ALG_ID.NULL
+        return self.signature.GetUnionSelector() if self.signature else TPM_ALG_ID.NULL
 
     def toTpm(self, buf):
         """ TpmMarshaller method """
