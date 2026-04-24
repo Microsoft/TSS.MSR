@@ -63,7 +63,7 @@ The TSS.MSR project also provides the TPM Platform Crypto Provider Toolkit.  It 
 
 We hope that the TSS.MSR project will prove useful to both software developers and researchers in their development of security solutions and applications for the Windows operating system.
 
-Feel free to use Issues section of this Github repo for any quetsions or problems.
+Feel free to use Issues section of this Github repo for any questions or problems.
 
 For private feedback please use tssdotnet@microsoft.com (for all managed languages) or tssdotcpp@microsoft.com mailing lists.
 
