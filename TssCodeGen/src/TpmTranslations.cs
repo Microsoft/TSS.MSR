@@ -444,7 +444,7 @@ namespace CodeGen
         {
             var nameDelimiters = new char[] { ' ', ',', '{', '}',
                                               '(', ')', '+', '-', '<', '*', '/', '`' };
-            string suffix = TargetLang.Java ? ".toInt()" : "";
+            string suffix = TargetLang.Java ? ".toInt()" : TargetLang.Rust ? ".into()" : "";
             string expr = ce.Expr;
             string[] tokens = expr.Split(nameDelimiters);
             bool sizeofOccurred = false,
@@ -484,12 +484,12 @@ namespace CodeGen
                     Debug.Assert(sizeofOccurred);
                     sizeofOccurred = false;
                     TpmType t = TpmTypes.Lookup(token);
-                    if (t is TpmStruct || TargetLang.IsOneOf(Lang.Java, Lang.JS, Lang.Py))
+                    if (t is TpmStruct || TargetLang.IsOneOf(Lang.Java, Lang.JS, Lang.Py, Lang.Rust))
                     {
                         string sizeofExpr = "sizeof(" + token + ")";
                         Debug.Assert(expr.Contains(sizeofExpr));
-                        commentNeeded = TargetLang.Py;
-                        string origExpr = TargetLang.Py ? "" : $"/*{sizeofExpr}*/";
+                        commentNeeded = TargetLang.Py || TargetLang.Rust;
+                        string origExpr = (TargetLang.Py || TargetLang.Rust) ? "" : $"/*{sizeofExpr}*/";
                         expr = expr.Replace(sizeofExpr, $"0x{t.GetSize():X}{origExpr}");
                     }
                     else if (TargetLang.DotNet)
@@ -504,7 +504,7 @@ namespace CodeGen
                     if (!TargetLang.IsGenerated(nc.EnclosingEnum))
                     {
                         translated = nc.NumericValue.ToString();
-                        if (!TargetLang.Py)
+                        if (!TargetLang.Py && !TargetLang.Rust)
                             translated += "/*" + token + "*/";
                         else
                             commentNeeded = true;
@@ -530,9 +530,15 @@ namespace CodeGen
                 } while (true);
                 expr = expr.Replace("<<", " << (int)");
             }
+            
+            // For Rust, we might need to add type suffixes for literals
+            if (TargetLang.Rust && expr.Contains("<<"))
+            {
+                expr = expr.Replace("<<", " << ");
+            }
 
             if (commentNeeded)
-                expr += $"  # {ce.Expr}";
+                expr += TargetLang.Rust ? $" /* {ce.Expr} */" : $"  # {ce.Expr}";
             return expr;
         } // TranslateConstExpr()
 
@@ -549,6 +555,8 @@ namespace CodeGen
             {
                 if (TargetLang.Cpp)
                     typeName = "ByteVec";
+                else if (TargetLang.Rust)
+                    return "Vec<u8>";
                 else
                 {
                     if (TargetLang.Node)
@@ -562,12 +570,13 @@ namespace CodeGen
             {
                 if (TargetLang.Cpp)
                     typeName = $"vector<{typeName}>";
+                else if (TargetLang.Rust)
+                    typeName = $"Vec<{typeName}>";
                 else
                     return typeName + "[]";
             }
             return typeName;
         }
-
     } // partial class TargetLang
 
 } // namespace CodeGen

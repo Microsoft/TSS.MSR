@@ -20,9 +20,9 @@ All flavors of TPM 2.0 devices mentioned in the previous section communicate wit
 
 In order to facilitate the development of applications and services using TPM 2.0, Microsoft has developed a series of TSS implementations for different programming languages. All these implementations provide complete representation of the TPM 2.0 API (commands, data structures, enumerations, unions) using the means of the corresponding languages, and some of them - additional functionality that greatly simplifies communications with TPM 2.0. All TSS.MSR implementations provide abstraction for Windows/Linux/Simulator TPM 2.0 devices.
 
-### [TSS.Net] and [TSS.CPP]
+### [TSS.Net], [TSS.CPP] and [TSS.Rust]
 
-TSS.Net and TSS.CPP are written in C# and C++ correspondingly, and are the richest TSS implementations in this collection. Besides complete abstraction of the TPM 2.0 interface, they implement additional functionality, such as:
+TSS.Net, TSS.CPP and TSS.Rust are written in C#, C++ and Rust correspondingly, and are the richest TSS implementations in this collection. Besides complete abstraction of the TPM 2.0 interface, they implement additional functionality, such as:
 
 * automatic handling of HMAC and policy sessions;
 * expected audit, policy and cpHashes computation;
@@ -48,6 +48,8 @@ Along with it comes a [sample test suite][TestSuite] that not only demonstrates 
 
 TSS.Net is a cross-platform .NET Standard library and requires Visual Studio 2017 or above to build it. It can target one of the following .NET framework flavors: .NET 4.7.2, .NET Core 2.1 (for both Windows and Linux), .NET Standard 2.0, and .NET UWP 10.0. You can download the latest versions of the .NET Framework [here](https://www.microsoft.com/net/download/windows).
 
+TSS.Rust requires Rust 1.70 or above and uses Cargo as its build system.
+
 TSS.Java uses Java SE 8 or above, TSS.JS requires Node.js 4.8.4 or higher, and TSS.Py supports Python 2.7 and 3.5+.
 
 ## Platform Crypto Provider Toolkit
@@ -70,6 +72,7 @@ For private feedback please use tssdotnet@microsoft.com (for all managed languag
 
 [TSS.Net]: ./TSS.NET
 [TSS.CPP]: ./TSS.CPP
+[TSS.Rust]: ./TSS.Rust
 [TSS.Java]: ./TSS.Java
 [TSS.JS]: ./TSS.JS
 [TSS.Py]: ./TSS.Py

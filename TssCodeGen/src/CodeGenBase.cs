@@ -31,6 +31,14 @@ namespace CodeGen
 
         public static readonly string[] ForceJustOneReturnParm = new string[] { "Load", "LoadExternal" };
 
+        /// <summary> Spec names of the structures a default-constructed instance of which must marshal
+        /// as an empty (zero size) object instead of reporting the absent union field as an error. </summary>
+        /// <remarks> Only TPMT_SENSITIVE relies on this: TPM2_LoadExternal takes an empty inPrivate
+        /// sized object when only the public part of a key is loaded. Currently honored by the Rust
+        /// generator only; the other target languages apply the convention to every structure whose
+        /// union selector is its first marshaled field. </remarks>
+        public static readonly string[] EmptyMarshalingStructs = new string[] { "TPMT_SENSITIVE" };
+
 
         protected CodeGenBase(string rootDir, string snipsFileName = null)
         {
@@ -41,17 +49,18 @@ namespace CodeGen
                 LoadSnips(rootDir + snipsFileName);
         }
 
-        
+
         internal abstract void Generate();
 
 
-        static void AddBitfieldElt(List<TpmNamedConstant> elements,  string name, int val, 
+        static void AddBitfieldElt(List<TpmNamedConstant> elements, string name, long val,
                                    string comment = null, string oldStyleName = null, bool custom = false)
         {
             // Comment is null only for custom enumerators "XXX_BIT_OFFSET" and "XXX_BIT_LENGTH"
-            var nc = new TpmNamedConstant(null, custom ? null : name, null, comment);
+            var value = comment == null ? val.ToString() : ToHex(val);
+            var nc = new TpmNamedConstant(null, custom ? null : name, value, comment);
             nc.Name = name;
-            nc.Value = comment == null ? val.ToString() : ToHex(val);
+            nc.Value = value;
             nc.OldStyleName = oldStyleName ?? name;
             elements.Add(nc);
         }
@@ -88,7 +97,7 @@ namespace CodeGen
                     string nameBase = b.Name.Contains("_") ? TargetLang.NameToDotNet(b.Name) : b.Name;
                     int len = b.StartBit - b.EndBit + 1;
                     var suff = TargetLang.DotNet ? new string[] { "BitMask", "BitOffset", "BitLength" }
-                                                 : new string[] { "_BIT_MASK" , "_BIT_OFFSET", "_BIT_LENGTH" };
+                                                 : new string[] { "_BIT_MASK", "_BIT_OFFSET", "_BIT_LENGTH" };
                     AddBitfieldElt(elements, nameBase + suff[0], ((1 << len) - 1) << b.EndBit, b.Comment, null, true);
                     AddBitfieldElt(elements, nameBase + suff[1], b.EndBit, null, null, true);
                     AddBitfieldElt(elements, nameBase + suff[2], len, null, null, true);
@@ -103,9 +112,14 @@ namespace CodeGen
             return elements;
         }
 
-        public static List<string> GetToTpmFieldsMarshalOps(StructField[] fields)
+        /// <param name="structSpecName"> Spec name of the structure being marshaled. Only supplied by
+        /// the Rust generator, which limits the empty-object convention to EmptyMarshalingStructs. </param>
+        public static List<string> GetToTpmFieldsMarshalOps(StructField[] fields, string structSpecName = null)
         {
             var marshalOps = new List<string>();
+            string fieldNamePrefix = TargetLang.Rust ? "&" : "";
+            string resultSuffix = TargetLang.Rust ? "?" : "";
+
             foreach (StructField f in fields)
             {
                 int size = f.Type.GetSize();
@@ -114,49 +128,62 @@ namespace CodeGen
                 {
                     case MarshalType.Normal:
                         if (f.IsValueType())
-                            marshalOps.Add($"buf.write{WireNameForInt(size)}({fieldName})");
+                            marshalOps.Add($"buf.write{WireNameForInt(size)}({TargetLang.GetEnumValue(fieldName, f.TypeName, size)})");
                         else
-                            marshalOps.Add($"{fieldName}.toTpm(buf)");
+                            marshalOps.Add($"{fieldName}.toTpm(buf){resultSuffix}");
 
                         if (f.Attrs.HasFlag(StructFieldAttr.TermOnNull))
-                            marshalOps.Add(TargetLang.If($"{fieldName} == {TpmTypes.AlgNull}") + " return");
+                        {
+                            string earlyReturn = TargetLang.Rust ? " { return Ok(()) }" : " return";
+                            marshalOps.Add(TargetLang.If($"{fieldName} == {TpmTypes.AlgNull}") + earlyReturn);
+                        }
                         break;
 
                     case MarshalType.ConstantValue:
-                        marshalOps.Add($"buf.write{WireNameForInt(size)}({ConstTag(f)})");
+                        marshalOps.Add($"buf.write{WireNameForInt(size)}({TargetLang.GetEnumValue(ConstTag(f), f.TypeName, size)})");
                         break;
 
                     case MarshalType.SizedStruct:
                         Debug.Assert(f.SizeTagField != null);
-                        marshalOps.Add($"buf.writeSizedObj({fieldName})");
+                        marshalOps.Add($"buf.writeSizedObj({fieldNamePrefix + fieldName}){resultSuffix}");
                         break;
 
                     case MarshalType.EncryptedVariableLengthArray:
                     case MarshalType.SpecialVariableLengthArray:
                         // TPMT_HA size is tagged by its hash alg (the first field)
-                        marshalOps.Add($"buf.writeByteBuf({fieldName})");
+                        marshalOps.Add($"buf.writeByteBuf({fieldNamePrefix + fieldName})");
                         break;
 
                     case MarshalType.VariableLengthArray:
                         var sizeTagLen = f.SizeTagField.Type.GetSize();
                         if (f.IsByteBuffer())
-                            marshalOps.Add($"buf.writeSizedByteBuf({fieldName}" + (sizeTagLen == 2 ? ")" : $", {sizeTagLen})"));
+                        {
+                            // Rust doesn't support default arguments for functions, so we need to pass the size tag length explicitly
+                            bool shouldNotPassSizeTag = sizeTagLen == 2 && !TargetLang.Rust;
+                            marshalOps.Add($"buf.writeSizedByteBuf({fieldNamePrefix}{fieldName}" + (shouldNotPassSizeTag ? ")" : $", {sizeTagLen})"));
+                        }
                         else if (f.IsValueType())
-                            marshalOps.Add($"buf.writeValArr({fieldName}, {size})");
+                            marshalOps.Add($"buf.writeValArr({fieldName + TargetLang.AsReference(true)}, {size})");
                         else
-                            marshalOps.Add($"buf.writeObjArr({fieldName})");
+                            marshalOps.Add($"buf.writeObjArr({fieldName + TargetLang.AsReference(true)}){resultSuffix}");
                         break;
 
                     case MarshalType.UnionSelector:
-                        // A trick to allow using default-constructed TPMT_SENSITIVE as an empty (non-marshaling) object
+                        // A trick to allow using default-constructed TPMT_SENSITIVE as an empty (non-marshaling) object.
+                        // Rust restricts it to EmptyMarshalingStructs, so that any other absent union is reported.
                         string unionField = ThisMember + f.RelatedUnion.Name;
-                        if (f == fields.First())
-                            marshalOps.Add(TargetLang.If($"{unionField} == {TargetLang.Null}") + " return");
-                        marshalOps.Add($"buf.write{WireNameForInt(size)}({unionField}{TargetLang.Member}GetUnionSelector())");
+                        if (f == fields.First() &&
+                            (!TargetLang.Rust || EmptyMarshalingStructs.Contains(structSpecName)))
+                        {
+                            string earlyReturn = TargetLang.Rust ? " { return Ok(()) }" : " return";
+                            marshalOps.Add(TargetLang.IfNull(unionField) + earlyReturn);
+                        }
+
+                        marshalOps.Add($"buf.write{WireNameForInt(size)}({unionField}{TargetLang.UnionMember(true)}GetUnionSelector(){TargetLang.GetUnionValue(size)})");
                         break;
 
                     case MarshalType.UnionObject:
-                        marshalOps.Add($"{fieldName}{TargetLang.Member}toTpm(buf)");
+                        marshalOps.Add($"{fieldName}{TargetLang.UnionMember(true)}toTpm(buf){resultSuffix}");
                         break;
 
                     default:
@@ -169,6 +196,8 @@ namespace CodeGen
 
         public static List<string> GetFromTpmFieldsMarshalOps(StructField[] fields)
         {
+            string resultSuffix = TargetLang.Rust ? "?" : "";
+
             var marshalOps = new List<string>();
             foreach (StructField f in fields)
             {
@@ -178,13 +207,16 @@ namespace CodeGen
                 {
                     case MarshalType.Normal:
                         if (f.IsValueType())
-                            marshalOps.Add($"{fieldName} = buf.read{WireNameForInt(size)}()");
+                            marshalOps.Add($"{fieldName} = {TargetLang.ParseEnum(f.TypeName, $"buf.read{WireNameForInt(size)}()", f.Type.GetFinalUnderlyingType().Name)}");
                         else
-                            marshalOps.Add(TargetLang.Cpp ? $"{fieldName}.initFromTpm(buf)"
-                                                          : $"{fieldName} = {f.TypeName}.fromTpm(buf)");
+                            marshalOps.Add(TargetLang.Cpp || TargetLang.Rust ? $"{fieldName}.initFromTpm(buf){resultSuffix}"
+                                                          : $"{fieldName} = {f.TypeName}.fromTpm(buf){resultSuffix}");
 
                         if (f.Attrs.HasFlag(StructFieldAttr.TermOnNull))
-                            marshalOps.Add(TargetLang.If($"{fieldName} == {TpmTypes.AlgNull}") + " return");
+                        {
+                            string earlyReturn = TargetLang.Rust ? " { return Ok(()) }" : " return";
+                            marshalOps.Add(TargetLang.If($"{fieldName} == {TpmTypes.AlgNull}") + earlyReturn);
+                        }
                         break;
 
                     case MarshalType.ConstantValue:
@@ -194,8 +226,9 @@ namespace CodeGen
 
                     case MarshalType.SizedStruct:
                         Debug.Assert(f.SizeTagField != null);
-                        marshalOps.Add(TargetLang.Cpp ? $"buf.readSizedObj({fieldName})"
-                                                      : $"{fieldName} = buf.createSizedObj({TargetLang.TypeInfo(f.TypeName)})");
+                        marshalOps.Add(TargetLang.Cpp ? $"buf.readSizedObj({fieldName})" :
+                                       TargetLang.Rust ? $"buf.readSizedObj(&mut {fieldName})?" :
+                                       $"{fieldName} = buf.createSizedObj({TargetLang.TypeInfo(f.TypeName)})");
                         break;
 
                     case MarshalType.EncryptedVariableLengthArray:
@@ -211,26 +244,41 @@ namespace CodeGen
                     case MarshalType.VariableLengthArray:
                         var sizeTagLen = f.SizeTagField.Type.GetSize();
                         if (f.IsByteBuffer())
-                            marshalOps.Add($"{fieldName} = buf.readSizedByteBuf(" + (sizeTagLen == 2 ? ")" : $"{sizeTagLen})"));
+                        {
+                            // Rust doesn't support default arguments for functions, so we need to pass the size tag length explicitly
+                            bool shouldNotPassSizeTag = sizeTagLen == 2 && !TargetLang.Rust;
+                            marshalOps.Add($"{fieldName} = buf.readSizedByteBuf(" + (shouldNotPassSizeTag ? ")" : $"{sizeTagLen})"));
+                        }
                         else if (f.IsValueType())
-                            marshalOps.Add(TargetLang.Cpp ? $"buf.readValArr({fieldName}, {f.Type.GetSize()})"
-                                                          : $"{fieldName} = buf.readValArr({f.Type.GetSize()})");
+                            marshalOps.Add(TargetLang.Cpp ? $"buf.readValArr({fieldName}, {f.Type.GetSize()})" :
+                                           TargetLang.Rust ? $"buf.readValArr({fieldName + TargetLang.AsReference(false)}, {f.Type.GetSize()})?" :
+                                           $"{fieldName} = buf.readValArr({f.Type.GetSize()})");
                         else
-                            marshalOps.Add(TargetLang.Cpp ? $"buf.readObjArr({fieldName})"
+                            marshalOps.Add(TargetLang.Cpp || TargetLang.Rust ? $"buf.readObjArr({fieldName + TargetLang.AsReference(false)}){resultSuffix}"
                                                           : $"{fieldName} = buf.readObjArr({TargetLang.TypeInfo(f.TypeName.TrimEnd('[', ']'))})");
                         break;
 
                     case MarshalType.UnionSelector:
                         var localVar = TargetLang.LocalVar(f.Name, f.TypeName);
-                        marshalOps.Add($"{localVar} = " +
-                                       (f.IsValueType() ? $"buf.read{WireNameForInt(size)}()" : $"{f.TypeName}.fromTpm(buf)"));
+                        if (f.IsValueType())
+                        {
+                            marshalOps.Add($"{localVar} = {TargetLang.ParseEnum(f.TypeName, $"buf.read{WireNameForInt(size)}()", f.Type.GetFinalUnderlyingType().Name)}");
+                        }
+                        else
+                            marshalOps.Add($"{localVar} = {f.TypeName}.fromTpm(buf){resultSuffix}");
                         break;
 
                     case MarshalType.UnionObject:
-                        var selector = (f as UnionField).UnionSelector.Name;
-                        marshalOps.Add(TargetLang.Cpp ? $"UnionFactory::Create({fieldName}, {selector})"
-                                                      : $"{fieldName} = UnionFactory.create({TargetLang.Quote(f.TypeName)}, {selector})");
-                        marshalOps.Add($"{fieldName}{TargetLang.Member}initFromTpm(buf)");
+                        var selector = (f as UnionField).UnionSelector;
+                        var selectorName = selector.Name;
+                        if (TargetLang.Cpp)
+                            marshalOps.Add($"UnionFactory::Create({fieldName}, {selectorName})");
+                        else if (TargetLang.Rust)
+                            marshalOps.Add($"{fieldName} = {f.TypeName}::create(r#{selectorName})?");
+                        else
+                            marshalOps.Add($"{fieldName} = UnionFactory.create({TargetLang.Quote(f.TypeName)}, {selectorName})");
+
+                        marshalOps.Add($"{fieldName}{TargetLang.UnionMember(false)}initFromTpm(buf){resultSuffix}");
                         break;
                     default:
                         break;
@@ -276,6 +324,14 @@ namespace CodeGen
             }
             AddSnip(curType, snipLines);
         }
+
+        /// <summary> The snippet lines inserted into the given type's definition, or an empty
+        /// sequence if the type has no snippet. </summary>
+        /// <remarks> A generator needs to look at these when the code it emits elsewhere must
+        /// account for what the snippet declares. The Rust generator does: a struct's Default
+        /// implementation has to initialize the fields the snippet injects, too. </remarks>
+        protected IEnumerable<string> GetSnip(string typeName)
+            => Snips.TryGetValue(typeName, out var snip) ? snip : Enumerable.Empty<string>();
 
         protected void InsertSnip(string typeName)
         {
@@ -351,15 +407,17 @@ namespace CodeGen
             return Object.ReferenceEquals(list.Last(), elem) ? term : sep;
         }
 
-        internal static string ToHex(int value)
+        internal static string ToHex(long value)
         {
-            return "0x" + Convert.ToString(value, 16).ToUpper();
+            // Cast to uint to avoid sign-extension of 32-bit values (e.g. 0x80000000)
+            return "0x" + Convert.ToString((uint)value, 16).ToUpper();
         }
-        internal static string ToHex(uint value) { return ToHex((int)value); }
+        internal static string ToHex(ulong value) { return ToHex((long)value); }
 
         internal static string WireNameForInt(int size)
         {
-            switch(size){
+            switch (size)
+            {
                 case 1: return "Byte";
                 case 2: return "Short";
                 case 4: return "Int";
@@ -427,7 +485,7 @@ namespace CodeGen
 
         public static string AsSummary(string comment)
         {
-            return  string.IsNullOrEmpty(comment) ? comment
+            return string.IsNullOrEmpty(comment) ? comment
                     : (TargetLang.Cpp || TargetLang.DotNet)
                     ? "<summary> " + comment + " </summary>" : comment;
         }
@@ -519,12 +577,12 @@ namespace CodeGen
                 if (!comment.Contains('\n'))
                 {
                     if (end.StartsWith("\n"))
-                        end =  end.Substring(1);
+                        end = end.Substring(1);
                     end = " " + end.TrimStart(' ');
                 }
                 comment += end;
             }
-            var lines = comment.Split(new char[] {'\n'});
+            var lines = comment.Split(new char[] { '\n' });
             for (int i = 0; i < lines.Length; ++i)
                 Write(lines[i]);
             CommentWritten = true;
@@ -552,12 +610,12 @@ namespace CodeGen
             WriteComment(AsSummary(nc.Comment));
         }
 
-        protected bool  NewLine = true,
+        protected bool NewLine = true,
                         EmptyLineWritten = false,
                         CommentWritten = false;
 
         protected const int SpacesPerTab = 4;
-        protected int   IndentLevel;
+        protected int IndentLevel;
 
         protected string CurIndent()
         {
@@ -586,9 +644,9 @@ namespace CodeGen
                 NewLine = true;
             }
 
-            string  curIndent = CurIndent(),
+            string curIndent = CurIndent(),
                     indent = NewLine ? curIndent : "";
-            var lines = str.Replace("\r", "").Split(new char[] {'\n'});
+            var lines = str.Replace("\r", "").Split(new char[] { '\n' });
             for (int i = 0; i < lines.Length; ++i)
             {
                 GeneratedCode.Append(indent + lines[i]);

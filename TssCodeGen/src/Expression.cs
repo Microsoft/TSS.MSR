@@ -16,26 +16,28 @@ namespace CodeGen
     {
     }
 
+    // Uses long (64-bit) to correctly handle unsigned 32-bit TPM constants (e.g. 0x80000000)
+    // that would overflow a signed int.
     class Operand : Token
     {
         string  _Value;
-        int?   _NumValue;
+        long?   _NumValue;
 
         public Operand (string val) { _Value = val; }
-        public Operand (int   val) { _NumValue = val; }
+        public Operand (long   val) { _NumValue = val; }
 
         public static implicit operator Operand (string val) { return new Operand(val); }
-        public static implicit operator Operand (int   val) { return new Operand(val); }
+        public static implicit operator Operand (long   val) { return new Operand(val); }
 
         public string Value { get { return _Value; } }
 
-        public int NumericValue
+        public long NumericValue
         {
             get
             {
                 if (_NumValue == null)
                     _NumValue = Expression.Eval(Value);
-                return (int)_NumValue;
+                return (long)_NumValue;
             }
         }
     } // class Operand
@@ -87,7 +89,7 @@ namespace CodeGen
             return Op == op;
         }
 
-        public int Apply (int lhs, int rhs)
+        public long Apply (long lhs, long rhs)
         {
             switch(Op)
             {
@@ -117,10 +119,10 @@ namespace CodeGen
     {
         public static bool IsNumber(string val)
         {
-            int numIs;
-            return Int32.TryParse(val, out numIs) ||
+            long numIs;
+            return Int64.TryParse(val, out numIs) ||
                    val.ToLower().StartsWith("0x") &&
-                   Int32.TryParse(val.Substring(2), NumberStyles.HexNumber,
+                   Int64.TryParse(val.Substring(2), NumberStyles.HexNumber,
                                   new NumberFormatInfo(), out numIs);
         }
 
@@ -128,11 +130,11 @@ namespace CodeGen
         /// the Part 2, or  Vendor Specicfic part of the TPM 2.0 spec added a new constant 
         /// value defined not in a table, but rather in a NOTE. In this case this definition
         /// needs to be manually added into the ImplementationConstants array. </remarks>
-        public static int Eval(string val)
+        public static long Eval(string val)
         {
             if (IsNumber(val))
             {
-                return Convert.ToInt32(val, val.ToLower().StartsWith("0x") ? 16 : 10);
+                return Convert.ToInt64(val, val.ToLower().StartsWith("0x") ? 16 : 10);
             }
             if (TpmTypes.ContainsConstant(val))
             {
@@ -193,7 +195,7 @@ namespace CodeGen
                 ops.Pop().Apply(values);
             }
             Debug.Assert(values.Count == 1);
-            int res = values.Pop().NumericValue;
+            long res = values.Pop().NumericValue;
             return res;
         }
 

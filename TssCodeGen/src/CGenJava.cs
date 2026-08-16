@@ -69,7 +69,7 @@ namespace CodeGen
 
         /// <summary> Constants and bitfields are represented as classes derived 
         /// from TpmEnum, and TpmAttribute correspondingly in Java </summary>
-        void GenEnum(TpmType e, List<TpmNamedConstant> elements, int wireSize)
+        void GenEnum(TpmType e, List<TpmNamedConstant> elements, long wireSize)
         {
             needsUtil = true;  // Collection needs java.util.*
 

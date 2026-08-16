@@ -205,7 +205,7 @@ export class TpmBase
         {
             // If the caller has not provided a session for a handle that requires authorization,
             // a password session is automatically created.
-            if (this.sessions == null)
+            if (this.sessions == null)               
                 this.sessions = new Array<Session>(numAuthHandles);
             else if (this.sessions.length < numAuthHandles)
                 this.sessions = this.sessions.concat(new Array<Session>(numAuthHandles - this.sessions.length));

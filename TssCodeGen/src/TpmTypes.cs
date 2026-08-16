@@ -564,12 +564,12 @@ namespace CodeGen
                 if (counter != null)
                 {
                     if (counter.MarshalType == MarshalType.LengthOfStruct)
-                        size += counter.MaxVal.NumericValue;
+                        size += (int)counter.MaxVal.NumericValue;
                     else if (counter.MarshalType == MarshalType.Normal && counter.Type.IsAlgOrHashAlg())
                         size += 64; // corresponds to SHA512 digest size
                     continue;
                 }
-                size += f.Type.GetSize() * (counter != null ? counter.MaxVal.NumericValue : 1);
+                size += (int)f.Type.GetSize() * (counter != null ? (int)counter.MaxVal.NumericValue : 1);
             }
             return size;
         }
@@ -601,7 +601,7 @@ namespace CodeGen
             {
                 int fieldSize = f.Type.GetSize();
                 if (f.ArraySize != null)
-                    fieldSize *= f.ArraySize.NumericValue;
+                    fieldSize *= (int)f.ArraySize.NumericValue;
                 size = Math.Max(size, fieldSize);
             }
             return size;
@@ -948,7 +948,7 @@ namespace CodeGen
         }
 
         /// <summary> Result of computing the constant's value expression </summary>
-        public int NumericValue => Expression.Eval(Expr);
+        public long NumericValue => Expression.Eval(Expr);
     } // class TpmConstExpr
 
 
@@ -987,7 +987,7 @@ namespace CodeGen
         }
 
         /// <summary> Result of computing the constant's value expression </summary>
-        public int NumericValue => SpecValue.NumericValue;
+        public long NumericValue => SpecValue.NumericValue;
 
         /// <summary> Enum member name qualified with the its enum type name </summary>
         public string QualifiedName => EnclosingEnum.Name + TargetLang.ClassMember + Name;

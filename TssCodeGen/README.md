@@ -3,7 +3,7 @@
 
 # Purpose
 
-This is the tool that automatically (re)generates the interface part of the TPM Software Stack (TSS) implementations for all supported programming languages/frameworks ([.Net][TSS.Net], [C++][TSS.CPP], [Java][TSS.Java], [Node.js][TSS.JS], [Python][TSS.Py]) based on the TCG's [TPM 2.0 specification] documents.
+This is the tool that automatically (re)generates the interface part of the TPM Software Stack (TSS) implementations for all supported programming languages/frameworks ([.Net][TSS.Net], [C++][TSS.CPP], [Rust][TSS.Rust], [Java][TSS.Java], [Node.js][TSS.JS], [Python][TSS.Py]) based on the TCG's [TPM 2.0 specification] documents.
 
 Auto-generated code includes the following components of the TPM 2.0 interface:
 * constants (represented as enums);
@@ -18,7 +18,7 @@ Auto-generated code includes the following components of the TPM 2.0 interface:
 
 When built and run in-place from a Visual Studio with no command line options provided, the tool will pick the TPM 2.0 specification data from the [TpmSpec](./TpmSpec) directory, and update TSS for all supported languages in this repo clone. 
 
-If the tool is used from a directory different from the one used by the Visual Studio build, you may need to use command line options to specify the location of the TPM 2.0 specification documents (`-spec`) and the target TSS implementations (`-dest`). You can also specify a subset of target TSS programming languages to update using a combination of options `-dotNet`, `-cpp`, `-java`, `-node`, `-py`.
+If the tool is used from a directory different from the one used by the Visual Studio build, you may need to use command line options to specify the location of the TPM 2.0 specification documents (`-spec`) and the target TSS implementations (`-dest`). You can also specify a subset of target TSS programming languages to update using a combination of options `-dotNet`, `-cpp`, `-java`, `-node`, `-py`, `-rust`.
 
 Run the tool with the `-help` option to get more detailed information about its command line options.
 
@@ -69,7 +69,7 @@ The tool works in three phases:
 
 3) Code generation phase.
    
-   A specialized class for each of the target program language ([CGenDotNet](./src/CGenDotNet.cs), [CGenCpp](./src/CGenCpp.cs), [CGenJava](./src/CGenJava.cs), [CGenNode](./src/CGenNode.cs), [CGenPy](./src/CGenPy.cs)) produces the code based on the AST representation.
+   A specialized class for each of the target program language ([CGenDotNet](./src/CGenDotNet.cs), [CGenCpp](./src/CGenCpp.cs), [CGenRust](./src/CGenRust.cs), [CGenJava](./src/CGenJava.cs), [CGenNode](./src/CGenNode.cs), [CGenPy](./src/CGenPy.cs)) produces the code based on the AST representation.
 
 
 ## *Abstract Syntax Tree (AST) classes*
@@ -155,7 +155,7 @@ The `CodeGenBase.Generate()` method implements the same generic workflow for all
 * TPM union factory implementation from the collection of the `UnionMember` and realted `UnionMember` instances.
   - Union factory is used to instantiate the correct union member (class implementing the given union interface) based on the union type and selector (tag) value. This is necessary while unmarshaling TPM structures with fields of a union type.
 * Class definitions from all `TpmStruct` instances. This includes field definitions, constructors, marshaling methods (except for [TSS.Net]), and on case-by-case basis additional interface methods.
-  - The set of automatically generated methods for a few TPM 2.0 structures is extended with custom additions via .snips files ([C++](../TSS.CPP/Src/TpmExtensions.cpp.snips), [Java](../TSS.Java/src/TpmExtensions.java.snips), [Node.js](../TSS.JS/src/TpmExtensions.js.snips), [Python](../TSS.Py/src/TpmExtensions.py.snips)). Snippet files contain fragments of the code that are appended to the auto-generated classes (class declarations in the case of C++) without any additional translations. Note that [TSS.Net] does not use this mechanism, as it custmizes its auto-generated classes using *partial classes* syntax.
+  - The set of automatically generated methods for a few TPM 2.0 structures is extended with custom additions via .snips files ([C++](../TSS.CPP/Src/TpmExtensions.cpp.snips), [Rust](../TSS.Rust/src/tpm_extensions.rs.snips), [Java](../TSS.Java/src/TpmExtensions.java.snips), [Node.js](../TSS.JS/src/TpmExtensions.js.snips), [Python](../TSS.Py/src/TpmExtensions.py.snips)). Snippet files contain fragments of the code that are appended to the auto-generated classes (class declarations in the case of C++) without any additional translations. Note that [TSS.Net] does not use this mechanism, as it custmizes its auto-generated classes using *partial classes* syntax.
 * TPM command definitions from the select `TpmStruct` instances representing command and response parameters.
 
 .Net code generator additionally creates a static class with marshaling metadata `CommandInformation`, and for C++ two maps for enum-to-string and string-to-enum conversions (`Enum2StrMap` and `Str2EnumMap`) are generated.
@@ -166,12 +166,14 @@ Generated code is accumulated in an internal buffer and then is written out to a
 * [TSS.CPP] follows [TSS.JS]/[TSS.Py] in splitting the TPM data type and command *declarations* between two header files ([TpmTypes.h](../TSS.CPP/include/TpmTypes.h) and [Tpm2.h](../TSS.CPP/include/Tpm2.h)). Yet it additionally creates the third source file for the *definitions* of marshaling methods, union factory and enum names conversion maps ([TpmTypes.cpp](../TSS.CPP/Src/TpmTypes.cpp)).
   - Note also that in contrast to other languages the C++ output sources are not completely (re)created by the code generator, but are rather *updated* by means of replacing their sections marked by the `<<AUTOGEN_BEGIN>>` comment with the new auto-generated code.
 * [TSS.Net] places all auto-generated definitions in the single source file ([X_TpmDefs.cs](../TSS.NET/TSS.NET/X_TpmDefs.cs)).
+* [TSS.Rust] keeps all TPM data types in [tpm_types.rs](../TSS.Rust/src/tpm_types.rs) and TPM command definitions in [tpm2.rs](../TSS.Rust/src/tpm2.rs), similar to [TSS.JS]/[TSS.Py]. Rust unions are represented as enums with tuple variants.
 * Java keeps each definition in its own [separate source file](../TSS.Java/src/tss/tpm), plus [Tpm.java](../TSS.Java/src/tss/Tpm.java) for TPM command definitions.
 
 
 
 [TSS.Net]: ../TSS.NET
 [TSS.CPP]: ../TSS.CPP
+[TSS.Rust]: ../TSS.Rust
 [TSS.Java]: ../TSS.Java
 [TSS.JS]: ../TSS.JS
 [TSS.Py]: ../TSS.Py

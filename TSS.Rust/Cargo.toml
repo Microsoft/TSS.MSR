@@ -1,0 +1,76 @@
+[package]
+name = "tss-msr-rs"
+version = "0.1.0"
+edition = "2021"
+# The repository's LICENSE file has always said MIT; stating it here as well is what lets a
+# consumer determine it mechanically. Tooling that audits dependency licences reads the manifest,
+# not the file, so without this line the crate is reported as unlicensed and a consumer whose
+# policy forbids that cannot take the dependency at all.
+license = "MIT"
+description = "A TPM 2.0 Software Stack (TSS) implementation for Rust."
+# Points at the fork because that is where this code actually lives. The upstream TSS.MSR carries
+# C, C++, Java, JavaScript, .NET and Python bindings but no Rust one, so there is as yet no
+# upstream home to name here. Update this if that changes.
+repository = "https://github.com/Kasher/TSS.MSR"
+
+[lints.rust]
+non_camel_case_types = "allow"
+unused-parens = "allow"
+
+[features]
+default = ["software-crypto"]
+
+# Build the RustCrypto-backed CryptoProvider. Disabling this drops every pure-Rust crypto
+# dependency, leaving the caller to supply a provider of their own.
+software-crypto = [
+    "dep:aes",
+    "dep:cipher",
+    "dep:hmac",
+    "dep:p256",
+    "dep:p384",
+    "dep:p521",
+    "dep:elliptic-curve",
+    "dep:rand",
+    "dep:rsa",
+    "dep:sha1",
+    "dep:sha2",
+    "dep:sm3",
+]
+
+# Build the CNG-backed CryptoProvider. This adds no dependencies: it calls bcrypt.dll through the
+# windows bindings the crate already uses, and it is inert on non-Windows targets.
+cng-crypto = []
+
+[dependencies]
+lazy_static = "1.5.0"
+# Constant-time comparison of authorization HMAC tags.
+subtle = "2.6"
+zeroize = "1.8"
+
+# Used only by the software-crypto provider.
+aes = { version = "0.8", optional = true }
+cipher = { version = "0.4", features = ["block-padding"], optional = true }
+hmac = { version = "0.12.1", optional = true }
+rand = { version = "0.8", optional = true }
+rsa = { version = "0.9.8", optional = true }
+sha1 = { version = "0.10.6", features = ["oid"], optional = true }
+sha2 = { version = "0.10.8", features = ["oid"], optional = true }
+sm3 = { version = "0.4.2", optional = true }
+
+# The NIST prime curves a TPM may nominate for an ECC storage key, and the generic traits that
+# let one agreement routine serve all three. Default features are off because they would pull in
+# the ECDSA, PKCS#8 and PEM stacks, none of which this provider uses: it only ever agrees.
+elliptic-curve = { version = "0.13", default-features = false, features = ["ecdh", "sec1"], optional = true }
+p256 = { version = "0.13", default-features = false, features = ["ecdh"], optional = true }
+p384 = { version = "0.13", default-features = false, features = ["ecdh"], optional = true }
+p521 = { version = "0.13", default-features = false, features = ["ecdh"], optional = true }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61.1", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Cryptography", "Win32_System_TpmBaseServices"] }
+
+[[example]]
+name = "tpm_samples"
+path = "examples/tpm_samples.rs"
+# Every sample opens an HMAC session, which derives its session key on the host, so the samples
+# cannot run without a crypto backend compiled in.
+required-features = ["software-crypto"]

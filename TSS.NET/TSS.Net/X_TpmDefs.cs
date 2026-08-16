@@ -3815,38 +3815,45 @@ namespace Tpm2Lib
         /// <summary> SET (1): an asymmetric algorithm with public and private portions
         /// CLEAR (0): not an asymmetric algorithm </summary>
         [EnumMember]
+        [SpecTypeName("Asymmetric")]
         Asymmetric = 0x1,
 
         /// <summary> SET (1): a symmetric block cipher
         /// CLEAR (0): not a symmetric block cipher </summary>
         [EnumMember]
+        [SpecTypeName("Symmetric")]
         Symmetric = 0x2,
 
         /// <summary> SET (1): a hash algorithm
         /// CLEAR (0): not a hash algorithm </summary>
         [EnumMember]
+        [SpecTypeName("Hash")]
         Hash = 0x4,
 
         /// <summary> SET (1): an algorithm that may be used as an object type
         /// CLEAR (0): an algorithm that is not used as an object type </summary>
         [EnumMember]
+        [SpecTypeName("Object")]
         Object = 0x8,
 
         /// <summary> SET (1): a signing algorithm. The setting of asymmetric, symmetric, and hash
         /// will indicate the type of signing algorithm.
         /// CLEAR (0): not a signing algorithm </summary>
         [EnumMember]
+        [SpecTypeName("Signing")]
         Signing = 0x100,
 
         /// <summary> SET (1): an encryption/decryption algorithm. The setting of asymmetric,
         /// symmetric, and hash will indicate the type of encryption/decryption algorithm.
         /// CLEAR (0): not an encryption/decryption algorithm </summary>
         [EnumMember]
+        [SpecTypeName("Encrypting")]
         Encrypting = 0x200,
 
         /// <summary> SET (1): a method such as a key derivative function (KDF)
         /// CLEAR (0): not a method </summary>
         [EnumMember]
+        [SpecTypeName("Method")]
         Method = 0x400
     }
 
@@ -3866,6 +3873,7 @@ namespace Tpm2Lib
         /// NOTE fixedTPM does not indicate that key material resides on a single TPM (see
         /// sensitiveDataOrigin). </summary>
         [EnumMember]
+        [SpecTypeName("FixedTPM")]
         FixedTPM = 0x2,
 
         /// <summary> SET (1): Previously saved contexts of this object may not be loaded after
@@ -3873,12 +3881,14 @@ namespace Tpm2Lib
         /// CLEAR (0): Saved contexts of this object may be used after a Shutdown(STATE) and
         /// subsequent Startup(). </summary>
         [EnumMember]
+        [SpecTypeName("StClear")]
         StClear = 0x4,
 
         /// <summary> SET (1): The parent of the object may not change.
         /// CLEAR (0): The parent of the object may change as the result of a TPM2_Duplicate() of
         /// the object. </summary>
         [EnumMember]
+        [SpecTypeName("FixedParent")]
         FixedParent = 0x10,
 
         /// <summary> SET (1): Indicates that, when the object was created with TPM2_Create() or
@@ -3886,6 +3896,7 @@ namespace Tpm2Lib
         /// CLEAR (0): A portion of the sensitive data, other than the authValue, was provided by
         /// the caller. </summary>
         [EnumMember]
+        [SpecTypeName("SensitiveDataOrigin")]
         SensitiveDataOrigin = 0x20,
 
         /// <summary> SET (1): Approval of USER role actions with this object may be with an HMAC
@@ -3893,6 +3904,7 @@ namespace Tpm2Lib
         /// CLEAR (0): Approval of USER role actions with this object may only be done with a
         /// policy session. </summary>
         [EnumMember]
+        [SpecTypeName("UserWithAuth")]
         UserWithAuth = 0x40,
 
         /// <summary> SET (1): Approval of ADMIN role actions with this object may only be done
@@ -3900,11 +3912,13 @@ namespace Tpm2Lib
         /// CLEAR (0): Approval of ADMIN role actions with this object may be with an HMAC session
         /// or with a password using the authValue of the object or a policy session. </summary>
         [EnumMember]
+        [SpecTypeName("AdminWithPolicy")]
         AdminWithPolicy = 0x80,
 
         /// <summary> SET (1): The object is not subject to dictionary attack protections.
         /// CLEAR (0): The object is subject to dictionary attack protections. </summary>
         [EnumMember]
+        [SpecTypeName("NoDA")]
         NoDA = 0x400,
 
         /// <summary> SET (1): If the object is duplicated, then symmetricAlg shall not be
@@ -3912,33 +3926,39 @@ namespace Tpm2Lib
         /// CLEAR (0): The object may be duplicated without an inner wrapper on the private
         /// portion of the object and the new parent may be TPM_RH_NULL. </summary>
         [EnumMember]
+        [SpecTypeName("EncryptedDuplication")]
         EncryptedDuplication = 0x800,
 
         /// <summary> SET (1): Key usage is restricted to manipulate structures of known format;
         /// the parent of this key shall have restricted SET.
         /// CLEAR (0): Key usage is not restricted to use on special formats. </summary>
         [EnumMember]
+        [SpecTypeName("Restricted")]
         Restricted = 0x10000,
 
         /// <summary> SET (1): The private portion of the key may be used to decrypt.
         /// CLEAR (0): The private portion of the key may not be used to decrypt. </summary>
         [EnumMember]
+        [SpecTypeName("Decrypt")]
         Decrypt = 0x20000,
 
         /// <summary> SET (1): For a symmetric cipher object, the private portion of the key may
         /// be used to encrypt. For other objects, the private portion of the key may be used to sign.
         /// CLEAR (0): The private portion of the key may not be used to sign or encrypt. </summary>
         [EnumMember]
+        [SpecTypeName("Sign")]
         Sign = 0x40000,
 
         /// <summary> Alias to the sign value. </summary>
         [EnumMember]
+        [SpecTypeName("Encrypt")]
         Encrypt = 0x40000,
 
         /// <summary> SET (1): An asymmetric key that may not be used to sign with TPM2_Sign()
         /// CLEAR (0): A key that may be used with TPM2_Sign() if sign is SET
         /// NOTE: This attribute only has significance if sign is SET. </summary>
         [EnumMember]
+        [SpecTypeName("X509sign")]
         X509sign = 0x80000
     }
 
@@ -3967,6 +3987,7 @@ namespace Tpm2Lib
         /// same handle but logically is not the same session.
         /// This attribute has no effect if the command does not complete successfully. </summary>
         [EnumMember]
+        [SpecTypeName("ContinueSession")]
         ContinueSession = 0x1,
 
         /// <summary> SET (1): In a command, this setting indicates that the command should only
@@ -3976,6 +3997,7 @@ namespace Tpm2Lib
         /// CLEAR (0): In a command, indicates that the session need not be exclusive at the start
         /// of the command. In a response, indicates that the session is not exclusive. </summary>
         [EnumMember]
+        [SpecTypeName("AuditExclusive")]
         AuditExclusive = 0x2,
 
         /// <summary> SET (1): In a command, this setting indicates that the audit digest of the
@@ -3984,6 +4006,7 @@ namespace Tpm2Lib
         /// CLEAR (0): In a command, indicates that the audit digest should not be initialized.
         /// This bit is always CLEAR in a response. </summary>
         [EnumMember]
+        [SpecTypeName("AuditReset")]
         AuditReset = 0x4,
 
         /// <summary> SET (1): In a command, this setting indicates that the first parameter in
@@ -3997,6 +4020,7 @@ namespace Tpm2Lib
         /// Such a session is provided for purposes of encrypting a parameter and not for authorization.
         /// This attribute may be SET in combination with any other session attributes. </summary>
         [EnumMember]
+        [SpecTypeName("Decrypt")]
         Decrypt = 0x20,
 
         /// <summary> SET (1): In a command, this setting indicates that the TPM should use this
@@ -4010,6 +4034,7 @@ namespace Tpm2Lib
         /// Such a session is provided for purposes of encrypting a parameter and not for
         /// authorization. </summary>
         [EnumMember]
+        [SpecTypeName("Encrypt")]
         Encrypt = 0x40,
 
         /// <summary> SET (1): In a command or response, this setting indicates that the session
@@ -4019,6 +4044,7 @@ namespace Tpm2Lib
         /// CLEAR (0): Session is not used for audit.
         /// If SET in the command, then this attribute will be SET in the response. </summary>
         [EnumMember]
+        [SpecTypeName("Audit")]
         Audit = 0x80
     }
 
@@ -4033,47 +4059,58 @@ namespace Tpm2Lib
         None = 0,
 
         [EnumMember]
+        [SpecTypeName("LocZero")]
         LocZero = 0x1,
         [Obsolete("Use LocalityAttr.LocZero instead")]
         TpmLocZero = 0x1,
 
         [EnumMember]
+        [SpecTypeName("LocOne")]
         LocOne = 0x2,
         [Obsolete("Use LocalityAttr.LocOne instead")]
         TpmLocOne = 0x2,
 
         [EnumMember]
+        [SpecTypeName("LocTwo")]
         LocTwo = 0x4,
         [Obsolete("Use LocalityAttr.LocTwo instead")]
         TpmLocTwo = 0x4,
 
         [EnumMember]
+        [SpecTypeName("LocThree")]
         LocThree = 0x8,
         [Obsolete("Use LocalityAttr.LocThree instead")]
         TpmLocThree = 0x8,
 
         [EnumMember]
+        [SpecTypeName("LocFour")]
         LocFour = 0x10,
         [Obsolete("Use LocalityAttr.LocFour instead")]
         TpmLocFour = 0x10,
 
         /// <summary> If any of these bits is set, an extended locality is indicated </summary>
         [EnumMember]
+        [SpecTypeName("")]
         ExtendedBitMask = 0xE0,
 
         [EnumMember]
+        [SpecTypeName("")]
         ExtendedBitOffset = 5,
 
         [EnumMember]
+        [SpecTypeName("")]
         ExtendedBitLength = 3,
 
         [EnumMember]
+        [SpecTypeName("")]
         ExtendedBit0 = 0x20,
 
         [EnumMember]
+        [SpecTypeName("")]
         ExtendedBit1 = 0x40,
 
         [EnumMember]
+        [SpecTypeName("")]
         ExtendedBit2 = 0x80
     }
 
@@ -4093,34 +4130,40 @@ namespace Tpm2Lib
         /// the last TPM2_Clear().
         /// CLEAR (0): ownerAuth has not been changed since TPM2_Clear(). </summary>
         [EnumMember]
+        [SpecTypeName("OwnerAuthSet")]
         OwnerAuthSet = 0x1,
 
         /// <summary> SET (1): TPM2_HierarchyChangeAuth() with endorsementAuth has been executed
         /// since the last TPM2_Clear().
         /// CLEAR (0): endorsementAuth has not been changed since TPM2_Clear(). </summary>
         [EnumMember]
+        [SpecTypeName("EndorsementAuthSet")]
         EndorsementAuthSet = 0x2,
 
         /// <summary> SET (1): TPM2_HierarchyChangeAuth() with lockoutAuth has been executed since
         /// the last TPM2_Clear().
         /// CLEAR (0): lockoutAuth has not been changed since TPM2_Clear(). </summary>
         [EnumMember]
+        [SpecTypeName("LockoutAuthSet")]
         LockoutAuthSet = 0x4,
 
         /// <summary> SET (1): TPM2_Clear() is disabled.
         /// CLEAR (0): TPM2_Clear() is enabled.
         /// NOTE See TPM2_ClearControl in TPM 2.0 Part 3 for details on changing this attribute. </summary>
         [EnumMember]
+        [SpecTypeName("DisableClear")]
         DisableClear = 0x100,
 
         /// <summary> SET (1): The TPM is in lockout, when failedTries is equal to maxTries. </summary>
         [EnumMember]
+        [SpecTypeName("InLockout")]
         InLockout = 0x200,
 
         /// <summary> SET (1): The EPS was created by the TPM.
         /// CLEAR (0): The EPS was created outside of the TPM using a manufacturer-specific
         /// process. </summary>
         [EnumMember]
+        [SpecTypeName("TpmGeneratedEPS")]
         TpmGeneratedEPS = 0x400
     }
 
@@ -4140,6 +4183,7 @@ namespace Tpm2Lib
         /// NOTE See TPM2_HierarchyControl in TPM 2.0 Part 3 for details on changing this
         /// attribute. </summary>
         [EnumMember]
+        [SpecTypeName("PhEnable")]
         PhEnable = 0x1,
 
         /// <summary> SET (1): The Storage hierarchy is enabled and ownerAuth or ownerPolicy may
@@ -4150,6 +4194,7 @@ namespace Tpm2Lib
         /// NOTE See TPM2_HierarchyControl in TPM 2.0 Part 3 for details on changing this
         /// attribute. </summary>
         [EnumMember]
+        [SpecTypeName("ShEnable")]
         ShEnable = 0x2,
 
         /// <summary> SET (1): The EPS hierarchy is enabled and Endorsement Authorization may be
@@ -4159,6 +4204,7 @@ namespace Tpm2Lib
         /// NOTE See TPM2_HierarchyControl in TPM 2.0 Part 3 for details on changing this
         /// attribute. </summary>
         [EnumMember]
+        [SpecTypeName("EhEnable")]
         EhEnable = 0x4,
 
         /// <summary> SET (1): NV indices that have TPMA_NV_PLATFORMCREATE SET may be read or
@@ -4175,6 +4221,7 @@ namespace Tpm2Lib
         /// does not exist, it also returns this error code if the index is disabled. Otherwise,
         /// the TPM would leak the existence of an index even when disabled. </summary>
         [EnumMember]
+        [SpecTypeName("PhEnableNV")]
         PhEnableNV = 0x8,
 
         /// <summary> SET (1): The TPM received a TPM2_Shutdown() and a matching TPM2_Startup().
@@ -4183,6 +4230,7 @@ namespace Tpm2Lib
         /// by a TPM2_Startup() of any type. However, the TPM will return an error if
         /// TPM2_Startup(TPM_SU_STATE) was not preceded by TPM2_Shutdown(TPM_SU_STATE). </summary>
         [EnumMember]
+        [SpecTypeName("Orderly")]
         Orderly = 0x80000000
     }
 
@@ -4202,6 +4250,7 @@ namespace Tpm2Lib
         /// CLEAR (0): indicates that the memory used for authorization sessions is not shared
         /// with memory used for transient objects </summary>
         [EnumMember]
+        [SpecTypeName("SharedRAM")]
         SharedRAM = 0x1,
 
         /// <summary> SET (1): indicates that the NV memory used for persistent objects is shared
@@ -4209,6 +4258,7 @@ namespace Tpm2Lib
         /// CLEAR (0): indicates that the persistent objects and NV Index values are allocated
         /// from separate sections of NV </summary>
         [EnumMember]
+        [SpecTypeName("SharedNV")]
         SharedNV = 0x2,
 
         /// <summary> SET (1): indicates that the TPM copies persistent objects to a
@@ -4217,6 +4267,7 @@ namespace Tpm2Lib
         /// CLEAR (0): indicates that the TPM does not use transient-object slots when persistent
         /// objects are referenced </summary>
         [EnumMember]
+        [SpecTypeName("ObjectCopiedToRam")]
         ObjectCopiedToRam = 0x4
     }
 
@@ -4233,57 +4284,71 @@ namespace Tpm2Lib
 
         /// <summary> Indicates the command being selected </summary>
         [EnumMember]
+        [SpecTypeName("")]
         commandIndexBitMask = 0xFFFF,
 
         [EnumMember]
+        [SpecTypeName("")]
         commandIndexBitOffset = 0,
 
         [EnumMember]
+        [SpecTypeName("")]
         commandIndexBitLength = 16,
 
         /// <summary> SET (1): indicates that the command may write to NV
         /// CLEAR (0): indicates that the command does not write to NV </summary>
         [EnumMember]
+        [SpecTypeName("Nv")]
         Nv = 0x400000,
 
         /// <summary> SET (1): This command could flush any number of loaded contexts.
         /// CLEAR (0): no additional changes other than indicated by the flushed attribute </summary>
         [EnumMember]
+        [SpecTypeName("Extensive")]
         Extensive = 0x800000,
 
         /// <summary> SET (1): The context associated with any transient handle in the command
         /// will be flushed when this command completes.
         /// CLEAR (0): No context is flushed as a side effect of this command. </summary>
         [EnumMember]
+        [SpecTypeName("Flushed")]
         Flushed = 0x1000000,
 
         /// <summary> Indicates the number of the handles in the handle area for this command </summary>
         [EnumMember]
+        [SpecTypeName("")]
         cHandlesBitMask = 0xE000000,
 
         [EnumMember]
+        [SpecTypeName("")]
         cHandlesBitOffset = 25,
 
         [EnumMember]
+        [SpecTypeName("")]
         cHandlesBitLength = 3,
 
         /// <summary> SET (1): indicates the presence of the handle area in the response </summary>
         [EnumMember]
+        [SpecTypeName("RHandle")]
         RHandle = 0x10000000,
 
         /// <summary> SET (1): indicates that the command is vendor-specific
         /// CLEAR (0): indicates that the command is defined in a version of this specification </summary>
         [EnumMember]
+        [SpecTypeName("V")]
         V = 0x20000000,
 
         /// <summary> Allocated for software; shall be zero </summary>
         [EnumMember]
-        ResBitMask = 0xC0000000,
+        [SpecTypeName("")]
+        ResBitMask = unchecked ((uint)(0xC0000000)),
 
         [EnumMember]
+        [SpecTypeName("")]
         ResBitOffset = 30,
 
         [EnumMember]
+        [SpecTypeName("")]
         ResBitLength = 2
     }
 
@@ -4300,6 +4365,7 @@ namespace Tpm2Lib
         /// <summary> SET (1): indicates that the TPM is designed to comply with all of the FIPS
         /// 140-2 requirements at Level 1 or higher. </summary>
         [EnumMember]
+        [SpecTypeName("Fips1402")]
         Fips1402 = 0x1
     }
 
@@ -4317,43 +4383,53 @@ namespace Tpm2Lib
 
         /// <summary> Attributes.Decrypt SET </summary>
         [EnumMember]
+        [SpecTypeName("DecipherOnly")]
         DecipherOnly = 0x800000,
 
         /// <summary> Attributes.Decrypt SET </summary>
         [EnumMember]
+        [SpecTypeName("EncipherOnly")]
         EncipherOnly = 0x1000000,
 
         /// <summary> Attributes.sign SET </summary>
         [EnumMember]
+        [SpecTypeName("CRLSign")]
         CRLSign = 0x2000000,
 
         /// <summary> Attributes.sign SET </summary>
         [EnumMember]
+        [SpecTypeName("KeyCertSign")]
         KeyCertSign = 0x4000000,
 
         /// <summary> Attributes.Decrypt SET </summary>
         [EnumMember]
+        [SpecTypeName("KeyAgreement")]
         KeyAgreement = 0x8000000,
 
         /// <summary> Attributes.Decrypt SET </summary>
         [EnumMember]
+        [SpecTypeName("DataEncipherment")]
         DataEncipherment = 0x10000000,
 
         /// <summary> Asymmetric key with decrypt and restricted SET key has the attributes of a
         /// parent key </summary>
         [EnumMember]
+        [SpecTypeName("KeyEncipherment")]
         KeyEncipherment = 0x20000000,
 
         /// <summary> FixedTPM SET in Subject Key (objectHandle) </summary>
         [EnumMember]
+        [SpecTypeName("Nonrepudiation")]
         Nonrepudiation = 0x40000000,
 
         /// <summary> Alias to the nonrepudiation value. </summary>
         [EnumMember]
+        [SpecTypeName("ContentCommitment")]
         ContentCommitment = 0x40000000,
 
         /// <summary> Sign SET in Subject Key (objectHandle) </summary>
         [EnumMember]
+        [SpecTypeName("DigitalSignature")]
         DigitalSignature = 0x80000000
     }
 
@@ -4372,10 +4448,12 @@ namespace Tpm2Lib
         /// <summary> SET (1): The ACT has signaled
         /// CLEAR (0): The ACT has not signaled </summary>
         [EnumMember]
+        [SpecTypeName("Signaled")]
         Signaled = 0x1,
 
         /// <summary> Preserves the state of signaled, depending on the power cycle </summary>
         [EnumMember]
+        [SpecTypeName("PreserveSignaled")]
         PreserveSignaled = 0x2
     }
 
@@ -4392,22 +4470,28 @@ namespace Tpm2Lib
 
         /// <summary> The Index of the NV location </summary>
         [EnumMember]
+        [SpecTypeName("")]
         indexBitMask = 0xFFFFFF,
 
         [EnumMember]
+        [SpecTypeName("")]
         indexBitOffset = 0,
 
         [EnumMember]
+        [SpecTypeName("")]
         indexBitLength = 24,
 
         /// <summary> Constant value of TPM_HT_NV_INDEX indicating the NV Index range </summary>
         [EnumMember]
-        RhNvBitMask = 0xFF000000,
+        [SpecTypeName("")]
+        RhNvBitMask = unchecked ((uint)(0xFF000000)),
 
         [EnumMember]
+        [SpecTypeName("")]
         RhNvBitOffset = 24,
 
         [EnumMember]
+        [SpecTypeName("")]
         RhNvBitLength = 8
     }
 
@@ -4424,11 +4508,13 @@ namespace Tpm2Lib
         /// CLEAR (0): Writing of the Index data cannot be authorized with Platform Authorization.
         /// </summary>
         [EnumMember]
+        [SpecTypeName("Ppwrite")]
         Ppwrite = 0x1,
 
         /// <summary> SET (1): The Index data can be written if Owner Authorization is provided.
         /// CLEAR (0): Writing of the Index data cannot be authorized with Owner Authorization. </summary>
         [EnumMember]
+        [SpecTypeName("Ownerwrite")]
         Ownerwrite = 0x2,
 
         /// <summary> SET (1): Authorizations to change the Index contents that require USER role
@@ -4436,6 +4522,7 @@ namespace Tpm2Lib
         /// CLEAR (0): Authorizations to change the Index contents that require USER role may not
         /// be provided with an HMAC session or password. </summary>
         [EnumMember]
+        [SpecTypeName("Authwrite")]
         Authwrite = 0x4,
 
         /// <summary> SET (1): Authorizations to change the Index contents that require USER role
@@ -4445,47 +4532,57 @@ namespace Tpm2Lib
         /// NOTE TPM2_NV_ChangeAuth() always requires that authorization be provided in a policy
         /// session. </summary>
         [EnumMember]
+        [SpecTypeName("Policywrite")]
         Policywrite = 0x8,
 
         /// <summary> Ordinary contains data that is opaque to the TPM that can only be modified
         /// using TPM2_NV_Write(). </summary>
         [EnumMember]
+        [SpecTypeName("Ordinary")]
         Ordinary = 0x0,
 
         /// <summary> Counter contains an 8-octet value that is to be used as a counter and can
         /// only be modified with TPM2_NV_Increment() </summary>
         [EnumMember]
+        [SpecTypeName("Counter")]
         Counter = 0x10,
 
         /// <summary> Bit Field contains an 8-octet value to be used as a bit field and can only
         /// be modified with TPM2_NV_SetBits(). </summary>
         [EnumMember]
+        [SpecTypeName("Bits")]
         Bits = 0x20,
 
         /// <summary> Extend contains a digest-sized value used like a PCR. The Index can only be
         /// modified using TPM2_NV_Extend(). The extend will use the nameAlg of the Index. </summary>
         [EnumMember]
+        [SpecTypeName("Extend")]
         Extend = 0x40,
 
         /// <summary> PIN Fail - contains pinCount that increments on a PIN authorization failure
         /// and a pinLimit </summary>
         [EnumMember]
+        [SpecTypeName("PinFail")]
         PinFail = 0x80,
 
         /// <summary> PIN Pass - contains pinCount that increments on a PIN authorization success
         /// and a pinLimit </summary>
         [EnumMember]
+        [SpecTypeName("PinPass")]
         PinPass = 0x90,
 
         /// <summary> The type of the index.
         /// NOTE A TPM is not required to support all TPM_NT values </summary>
         [EnumMember]
+        [SpecTypeName("")]
         TpmNtBitMask = 0xF0,
 
         [EnumMember]
+        [SpecTypeName("")]
         TpmNtBitOffset = 4,
 
         [EnumMember]
+        [SpecTypeName("")]
         TpmNtBitLength = 4,
 
         /// <summary> SET (1): Index may not be deleted unless the authPolicy is satisfied using
@@ -4495,11 +4592,13 @@ namespace Tpm2Lib
         /// NOTE An Index with this attribute and a policy that cannot be satisfied (e.g., an
         /// Empty Policy) cannot be deleted. </summary>
         [EnumMember]
+        [SpecTypeName("PolicyDelete")]
         PolicyDelete = 0x400,
 
         /// <summary> SET (1): Index cannot be written.
         /// CLEAR (0): Index can be written. </summary>
         [EnumMember]
+        [SpecTypeName("Writelocked")]
         Writelocked = 0x800,
 
         /// <summary> SET (1): A partial write of the Index data is not allowed. The write size
@@ -4507,12 +4606,14 @@ namespace Tpm2Lib
         /// CLEAR (0): Partial writes are allowed. This setting is required if the .dataSize of
         /// the Index is larger than NV_MAX_BUFFER_SIZE for the implementation. </summary>
         [EnumMember]
+        [SpecTypeName("Writeall")]
         Writeall = 0x1000,
 
         /// <summary> SET (1): TPM2_NV_WriteLock() may be used to prevent further writes to this location.
         /// CLEAR (0): TPM2_NV_WriteLock() does not block subsequent writes if
         /// TPMA_NV_WRITE_STCLEAR is also CLEAR. </summary>
         [EnumMember]
+        [SpecTypeName("Writedefine")]
         Writedefine = 0x2000,
 
         /// <summary> SET (1): TPM2_NV_WriteLock() may be used to prevent further writes to this
@@ -4520,33 +4621,39 @@ namespace Tpm2Lib
         /// CLEAR (0): TPM2_NV_WriteLock() does not block subsequent writes if TPMA_NV_WRITEDEFINE
         /// is also CLEAR. </summary>
         [EnumMember]
+        [SpecTypeName("WriteStclear")]
         WriteStclear = 0x4000,
 
         /// <summary> SET (1): If TPM2_NV_GlobalWriteLock() is successful, TPMA_NV_WRITELOCKED is set.
         /// CLEAR (0): TPM2_NV_GlobalWriteLock() has no effect on the writing of the data at this
         /// Index. </summary>
         [EnumMember]
+        [SpecTypeName("Globallock")]
         Globallock = 0x8000,
 
         /// <summary> SET (1): The Index data can be read if Platform Authorization is provided.
         /// CLEAR (0): Reading of the Index data cannot be authorized with Platform Authorization.
         /// </summary>
         [EnumMember]
+        [SpecTypeName("Ppread")]
         Ppread = 0x10000,
 
         /// <summary> SET (1): The Index data can be read if Owner Authorization is provided.
         /// CLEAR (0): Reading of the Index data cannot be authorized with Owner Authorization. </summary>
         [EnumMember]
+        [SpecTypeName("Ownerread")]
         Ownerread = 0x20000,
 
         /// <summary> SET (1): The Index data may be read if the authValue is provided.
         /// CLEAR (0): Reading of the Index data cannot be authorized with the Index authValue. </summary>
         [EnumMember]
+        [SpecTypeName("Authread")]
         Authread = 0x40000,
 
         /// <summary> SET (1): The Index data may be read if the authPolicy is satisfied.
         /// CLEAR (0): Reading of the Index data cannot be authorized with the Index authPolicy. </summary>
         [EnumMember]
+        [SpecTypeName("Policyread")]
         Policyread = 0x80000,
 
         /// <summary> SET (1): Authorization failures of the Index do not affect the DA logic and
@@ -4555,6 +4662,7 @@ namespace Tpm2Lib
         /// failure counter and authorizations of this Index are not allowed when the TPM is in
         /// Lockout mode. </summary>
         [EnumMember]
+        [SpecTypeName("NoDa")]
         NoDa = 0x2000000,
 
         /// <summary> SET (1): NV Index state is only required to be saved when the TPM performs
@@ -4563,22 +4671,26 @@ namespace Tpm2Lib
         /// Index completes successfully (that is, the NV update is synchronous with the update
         /// command). </summary>
         [EnumMember]
+        [SpecTypeName("Orderly")]
         Orderly = 0x4000000,
 
         /// <summary> SET (1): TPMA_NV_WRITTEN for the Index is CLEAR by TPM Reset or TPM Restart.
         /// CLEAR (0): TPMA_NV_WRITTEN is not changed by TPM Restart.
         /// NOTE This attribute may only be SET if TPM_NT is not TPM_NT_COUNTER. </summary>
         [EnumMember]
+        [SpecTypeName("ClearStclear")]
         ClearStclear = 0x8000000,
 
         /// <summary> SET (1): Reads of the Index are blocked until the next TPM Reset or TPM Restart.
         /// CLEAR (0): Reads of the Index are allowed if proper authorization is provided. </summary>
         [EnumMember]
+        [SpecTypeName("Readlocked")]
         Readlocked = 0x10000000,
 
         /// <summary> SET (1): Index has been written.
         /// CLEAR (0): Index has not been written. </summary>
         [EnumMember]
+        [SpecTypeName("Written")]
         Written = 0x20000000,
 
         /// <summary> SET (1): This Index may be undefined with Platform Authorization but not
@@ -4589,11 +4701,13 @@ namespace Tpm2Lib
         /// Platform Authorization and will validate that this attribute is CLEAR when the Index
         /// is defined using Owner Authorization. </summary>
         [EnumMember]
+        [SpecTypeName("Platformcreate")]
         Platformcreate = 0x40000000,
 
         /// <summary> SET (1): TPM2_NV_ReadLock() may be used to SET TPMA_NV_READLOCKED for this Index.
         /// CLEAR (0): TPM2_NV_ReadLock() has no effect on this Index. </summary>
         [EnumMember]
+        [SpecTypeName("ReadStclear")]
         ReadStclear = 0x80000000
     }
 
